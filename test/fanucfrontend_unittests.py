@@ -39,3 +39,7 @@ class FanucFrontEndUnitTest(unittest.TestCase):
 	def test_abort(self):
 		self.frontend.stop_motion()
 		self.assertEqual(self.log_stream.getvalue(), "https://hookbin.com/KAREL/appabort\n")
+
+
+if __name__ == '__main__':
+	unittest.main()
