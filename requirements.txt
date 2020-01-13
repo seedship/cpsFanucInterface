@@ -1,4 +1,2 @@
 requests
-logging
-unittest
 json

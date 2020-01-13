@@ -17,21 +17,24 @@ def main():
 	logger.addHandler(stream_handler)
 
 	# Parse arguments
-	parser = argparse.ArgumentParser(description='TUM Chair of Cyber Physical Systems in Production Engineering FANUC Robot Driver')
-	parser.add_argument('--robot_endpoint', required=True, type=str, help='http endpoint of the robot')
-	parser.add_argument('--django_endpoint', required=True, type=str, help='http endpoint of the django server')
-	args = parser.parse_args()
+	# parser = argparse.ArgumentParser(description='TUM Chair of Cyber Physical Systems in Production Engineering FANUC Robot Driver')
+	# parser.add_argument('--robot_endpoint', required=True, type=str, help='http endpoint of the robot')
+	# parser.add_argument('--django_endpoint', required=True, type=str, help='http endpoint of the django server')
+	# args = parser.parse_args()
 
 	# Instantiate drivers
-	fanucFrontEnd = FANUCFrontEnd(args.robot_endpoint)
-	djangoFrontEnd = DjangoFrontEnd(args.django_endpoint)
+	fanucFrontEnd = FANUCFrontEnd("http://10.162.12.191")
+	djangoFrontEnd = DjangoFrontEnd("http://127.0.0.1:8000")
 
 	# Begin motion
 	commands = djangoFrontEnd.make_request()
-	fanucFrontEnd.begin_motion()
+	fanucFrontEnd.start_motion()
 	for command in commands:
 		# Move to command position in absolute cartesian motion with joint interpolation
-		fanucFrontEnd.send_motion_request(command['x'], command['y'], command['z'], command['phi'], command['theta'], command['psi'], 'jca')
+		success = fanucFrontEnd.send_motion_request(command['x'], command['y'], command['z'], command['phi'], command['theta'], command['psi'], 'lca')
+		djangoFrontEnd.send_response(command['id'], success)
+
+	fanucFrontEnd.stop_motion()
 
 
 if __name__ == "__main__":
