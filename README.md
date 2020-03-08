@@ -11,9 +11,13 @@
 
 * Set HTTP Authentication to Unlocked
     * Open Teach Pennant
-    * Menu -> 6. Setup -> Host Comm (Should be under window 2 if no additional options were chosen in Setup Step 8)
-    * Number 6. HTTP
+    * Menu -> 6. Setup -> 9. Host Comm (Should be under window 2 number 9 if no additional options were chosen in Setup Step 8)
+    * Select number 6. HTTP
     * Set Karel to UNLOCK
-
-* A 
-* B
+    
+* Setup DPM
+    *  Follow the DPM and Host Comm sections under [Configuration guide](https://github.com/gavanderhoorn/fanuc_dpm_mouse_demo) from the FANUC DPM Mouse Demo
+    * Set U Frame
+        * Menu -> 6. Setup -> 4. Frames
+        * Choose \[Other\] -> 3. User Frames
+        * Select SETIND and select 1
