@@ -1,6 +1,7 @@
 import driver.fanucfrontend as ffe
 import logging
 import sys
+import time
 
 
 # A collection of stand alone tests to verify robot behavior
@@ -12,14 +13,18 @@ def sandbox():
     print(status)
     response = frontend.start_motion()
     print("Success?:", response)
-    response = frontend.send_motion_request(1500, 0, 100, 0, 0, 0, "lca")
+    response = frontend.send_motion_request(470, 0, -20, 0, 0, 0, "lca")
     print("Success?:", response)
-    response = frontend.send_motion_request(1300, 0, 200, 0, 0, 0, "lca")
+    time.sleep(1)
+    response = frontend.send_motion_request(600, 0, 40, 0, 0, 0, "lca")
     print("Success?:", response)
-    response = frontend.send_motion_request(1700, 0, 200, 0, 0, 0, "lca")
+    time.sleep(1)
+    response = frontend.send_motion_request(340, 0, 40, 0, 0, 0, "lca")
     print("Success?:", response)
-    response = frontend.send_motion_request(1500, 0, 100, 0, 0, 0, "lca")
+    time.sleep(1)
+    response = frontend.send_motion_request(470, 0, -20, 0, 0, 0, "lca")
     print("Success?:", response)
+    time.sleep(1)
     response = frontend.stop_motion()
     print("Success?:", response)
     response = frontend.reset()

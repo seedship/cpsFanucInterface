@@ -6,7 +6,10 @@ import json
 class FANUCFrontEnd(HTTPFrontEnd):
 
 	def __init__(self, endpoint):
-		super().__init__(endpoint + "/KAREL/")
+		if endpoint[-1] == '/':
+			super().__init__(endpoint + "KAREL/")
+		else:
+			super().__init__(endpoint + "/KAREL/")
 
 	def start_motion(self):
 		response = super().invoke_program("appmotion")
