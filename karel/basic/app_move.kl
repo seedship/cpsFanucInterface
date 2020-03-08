@@ -1,0 +1,275 @@
+PROGRAM appmove
+
+%COMMENT = 'appmove v1'
+%NOLOCKGROUP
+%NOPAUSE=ERROR+COMMAND+TPENABLE
+%NOBUSYLAMP
+
+CONST 
+	JJR_MOTION = 1 -- joint relative joint interpolation
+	JJA_MOTION = 2 -- joint absolut joint interpolation
+	
+	JCA_MOTION = 3 -- cartesian absolut joint interpolation
+	LCA_MOTION = 4 -- cartesian absolut linear interpolation
+	JCR_MOTION = 5 -- cartesian relative joint interpolation 
+	LCR_MOTION = 6 -- cartesian relative linear interpolation
+	
+	WAIT_MOTION = 7 -- wait for motion
+	
+	COORD_LEN = 9
+	
+	--register ids
+	PR_JOINTS = 40
+	PR_XYZWPR = 41
+	
+	R_COORD1 = 51
+	R_COORD2 = 52
+	R_COORD3 = 53
+	R_COORD4 = 54
+	R_COORD5 = 55
+	R_COORD6 = 56
+	
+	
+VAR
+--get parameters
+	motion_t: STRING[3]
+
+--program parameter
+	rf_ :FILE
+	STATUS: INTEGER
+	
+-- option type is related to mt url parameter
+	opt: INTEGER
+	
+	coord1: STRING[127]
+	coord2: STRING[127]
+	coord3: STRING[127]
+	coord4: STRING[127]
+	coord5: STRING[127]
+	coord6: STRING[127]
+
+	coord: ARRAY[COORD_LEN] OF REAL
+
+	cur_jpos: JOINTPOS
+	cur_pos: XYZWPR
+	
+	new_jpos: JOINTPOS
+	new_pos: XYZWPR	
+	
+
+ROUTINE check_param_ : INTEGER FROM appmove
+ROUTINE set_reg_ : INTEGER FROM appmove
+
+BEGIN
+	
+	cur_pos = CURPOS(0,0);
+	cur_jpos = CURJPOS(0,0);
+
+	OPEN FILE rf_ ('RW', 'RD:RESPONSE.HTM')
+	STATUS = IO_STATUS(rf_)
+	IF (STATUS <> 0) THEN
+		WRITE rf_ ( '{"result":"failed", "program":"appmotion", "reason":',STATUS,'}') 
+	ENDIF
+
+	opt = check_param_
+	SELECT opt OF
+			
+		CASE (JJR_MOTION):
+			-- if the register cannot be set
+			IF (set_reg_ <> 0) THEN
+				WRITE rf_ ( '{"result":"failed", "program":"appmove", "reason":',STATUS,'}')	
+			ELSE
+				SET_JPOS_REG(PR_JOINTS, cur_jpos, STATUS)
+				IF (STATUS <> 0 ) THEN			
+					WRITE rf_ ( '{"result":"failed", "program":"appmove", "reason":',STATUS,'}')			
+				ELSE	
+					WRITE rf_ ( '{"result":"success", "program":"appmove", "reason":',STATUS,'}')
+					FLG[1] = ON						
+					FLG[7] = ON
+				ENDIF
+			ENDIF
+			
+		CASE (JJA_MOTION):
+			CNV_REL_JPOS(coord, new_jpos, STATUS)	
+			IF (STATUS <> 0 ) THEN		
+				WRITE rf_ ( '{"result":"failed", "program":"appmove", "reason":',STATUS,'}')		
+			ELSE	
+				SET_JPOS_REG(PR_JOINTS, new_jpos, STATUS)	-- set the joint motion positions register
+				IF (STATUS <> 0 ) THEN			
+					WRITE rf_ ( '{"result":"failed", "program":"appmove", "reason":',STATUS,'}')		
+				ELSE
+					WRITE rf_ ( '{"result":"success", "program":"appmove", "reason":',STATUS,'}')	
+					FLG[2] = ON						
+					FLG[7] = ON		
+				ENDIF
+			ENDIF
+		
+		CASE (JCA_MOTION):		
+			new_pos = cur_pos --Keep the current configuration
+
+			new_pos.x = coord[1]
+			new_pos.y = coord[2]
+			new_pos.z = coord[3]
+			new_pos.w = coord[4]
+			new_pos.p = coord[5]
+			new_pos.r = coord[6]
+
+			SET_POS_REG(PR_XYZWPR, new_pos, STATUS)		
+			IF (STATUS <> 0 ) THEN		
+				WRITE rf_ ( '{"result":"failed", "program":"appmove", "reason":',STATUS,'}')	
+			ELSE
+				SET_POS_REG(PR_XYZWPR, cur_pos, STATUS)
+				IF (STATUS <> 0 ) THEN		
+					WRITE rf_ ( '{"result":"failed", "program":"appmove", "reason":',STATUS,'}')	
+				ELSE
+					WRITE rf_ ( '{"result":"success", "program":"appmove", "reason":',STATUS,'}')
+					FLG[3] = ON						
+					FLG[7] = ON
+				ENDIF
+			ENDIF
+			
+		CASE (LCA_MOTION): 
+			
+			new_pos = cur_pos --Keep the current configuration
+
+			new_pos.x = coord[1]
+			new_pos.y = coord[2]
+			new_pos.z = coord[3]
+			new_pos.w = coord[4]
+			new_pos.p = coord[5]
+			new_pos.r = coord[6]
+			
+			SET_POS_REG(PR_XYZWPR, new_pos, STATUS)	-- set positions register	
+			IF (STATUS <> 0 ) THEN		
+				WRITE rf_ ( '{"result":"failed", "program":"appmove", "reason":',STATUS,'}')	
+			ELSE
+				WRITE rf_ ( '{"result":"success", "program":"appmove", "reason":',STATUS,'}')
+				FLG[4] = ON						
+				FLG[7] = ON
+			ENDIF
+				
+		CASE (JCR_MOTION):	
+			-- if the register cannot be set
+			IF (set_reg_ <> 0) THEN
+				WRITE rf_ ( '{"result":"failed", "program":"appmove", "reason":',STATUS,'}')	
+			ELSE
+				WRITE rf_ ( '{"result":"success", "program":"appmove", "reason":',STATUS,'}')
+				FLG[5] = ON	
+				FLG[7] = ON
+			ENDIF
+			
+		CASE (LCR_MOTION):
+			-- if the register cannot be set
+			IF (set_reg_ <> 0) THEN
+				WRITE rf_ ( '{"result":"failed", "program":"appmove", "reason":',STATUS,'}')	
+			ELSE
+				WRITE rf_ ( '{"result":"success", "program":"appmove", "reason":',STATUS,'}')
+				FLG[6] = ON	
+				FLG[7] = ON
+			ENDIF
+		
+		ELSE:	
+			WRITE rf_ ( '{"result":"failed", "program":"appmove", "reason":',opt,'}') 
+	ENDSELECT
+
+	CLOSE FILE rf_
+	
+END appmove
+
+-------------------------------------- ROUTINE ----------------------------------------
+
+ROUTINE check_param_
+VAR
+	stat_: INTEGER
+BEGIN
+	
+	stat_ = -1
+	
+	IF (UNINIT(motion_t)) THEN RETURN (-1); ENDIF
+	
+	IF (motion_t = 'jjr') THEN stat_ = JJR_MOTION; ENDIF
+	IF (motion_t = 'jja') THEN stat_ = JJA_MOTION; ENDIF
+	
+	IF (motion_t = 'jcr') THEN stat_ = JCR_MOTION; ENDIF
+	IF (motion_t = 'jca') THEN stat_ = JCA_MOTION; ENDIF
+	IF (motion_t = 'lcr') THEN stat_ = LCR_MOTION; ENDIF
+	IF (motion_t = 'lca') THEN stat_ = LCA_MOTION; ENDIF
+	
+	WRITE ('status while parameter check ', stat_ ,CR)
+	
+	IF (UNINIT(coord1) OR 
+		UNINIT(coord2) OR 
+		UNINIT(coord3) OR 
+		UNINIT(coord4) OR 
+		UNINIT(coord5) OR 
+		UNINIT(coord6)) THEN
+		WRITE ('uninitialized variable',CR)
+		RETURN (-1)
+	ELSE
+		
+		IF (stat_ <> -1) THEN
+	
+			IF ((coord1 = '') OR
+				(coord2 = '') OR
+				(coord3 = '') OR
+				(coord4 = '') OR
+				(coord5 = '') OR
+				(coord6 = '')) THEN
+				WRITE ('coordinate empty',CR)
+				RETURN(-1)
+			ENDIF
+	
+			-- convert the positions to real numbers
+			CNV_STR_REAL(coord1, coord[1])
+			CNV_STR_REAL(coord2, coord[2])
+			CNV_STR_REAL(coord3, coord[3])
+			CNV_STR_REAL(coord4, coord[4])
+			CNV_STR_REAL(coord5, coord[5])
+			CNV_STR_REAL(coord6, coord[6])
+			coord[7] = 0.0
+			coord[8] = 0.0
+			coord[9] = 0.0
+			WRITE ('coordinate set',CR)
+			RETURN (stat_)
+		ENDIF
+		
+	ENDIF
+	
+	RETURN(-1)
+END check_param_
+
+ROUTINE set_reg_
+BEGIN
+			--set registers	
+		SET_REAL_REG( R_COORD1, coord[1], STATUS)
+		IF (STATUS <> 0 ) THEN
+			RETURN (-1)
+		ENDIF
+	
+		SET_REAL_REG( R_COORD2, coord[2], STATUS)
+		IF (STATUS <> 0 ) THEN
+			RETURN (-1)
+		ENDIF
+	
+		SET_REAL_REG( R_COORD3, coord[3], STATUS)
+		IF (STATUS <> 0 ) THEN
+			RETURN (-1)
+		ENDIF
+	
+		SET_REAL_REG( R_COORD4, coord[4], STATUS)
+		IF (STATUS <> 0 ) THEN
+			RETURN (-1)
+		ENDIF
+	
+		SET_REAL_REG( R_COORD5, coord[5], STATUS)
+		IF (STATUS <> 0 ) THEN
+			RETURN (-1)
+		ENDIF
+	
+		SET_REAL_REG( R_COORD6, coord[6], STATUS)
+		IF (STATUS <> 0 ) THEN
+			RETURN (-1)
+		ENDIF
+		
+		RETURN (STATUS)	
+END set_reg_

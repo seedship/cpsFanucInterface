@@ -1,0 +1,66 @@
+PROGRAM appmonitor
+%COMMENT = 'appmonitor v1'
+%NOLOCKGROUP
+%NOPAUSE=ERROR+COMMAND+TPENABLE
+%NOBUSYLAMP
+
+VAR
+
+	STATUS: INTEGER
+	responseFile: FILE
+	
+	error_code: INTEGER
+	error_string: STRING[127]
+	cause_code: INTEGER
+	cause_string: STRING[127]
+	time_int: INTEGER
+	severity: INTEGER
+	prog_nam: STRING[127]
+
+
+	currentPos: XYZWPREXT
+	currentPosJ: JOINTPOS
+	valuePosJ: ARRAY[6] OF REAL
+
+BEGIN
+	ERR_DATA(MAXINT, error_code, error_string, cause_code, cause_string, time_int, severity, prog_nam)
+	
+	$GROUP[1].$UTOOL = $MNUTOOL[1,1] --uTool 1
+	$GROUP[1].$UFRAME = $MNUFRAME[1,1] --uFrame 1
+	
+	currentPos = CURPOS(0,0)	
+	currentPosJ = CURJPOS(0,0)
+	
+	CNV_JPOS_REL( currentPosJ, valuePosJ, STATUS )
+	IF (STATUS <> 0 ) THEN
+		WRITE ('CNV_JPOS_REL is failed, STATUS = ', STATUS, CR)
+	ENDIF
+
+	OPEN FILE responseFile ('RW', 'RD:RESPONSE.HTM')
+		
+		WRITE responseFile( '{', CR )
+			WRITE responseFile( '"joint": [' )
+				WRITE responseFile( valuePosJ[1],',') 
+				WRITE responseFile( valuePosJ[2],',')
+				WRITE responseFile( valuePosJ[3],',')
+				WRITE responseFile( valuePosJ[4],',')
+				WRITE responseFile( valuePosJ[5],',')
+				WRITE responseFile( valuePosJ[6] )
+			WRITE responseFile( ' ],', CR )
+			WRITE responseFile( '"position": [' )
+				WRITE responseFile( currentPos.x,',')  
+				WRITE responseFile( currentPos.y,',')
+				WRITE responseFile( currentPos.z,',')
+				WRITE responseFile( currentPos.w,',')
+				WRITE responseFile( currentPos.p,',')
+				WRITE responseFile( currentPos.r )
+			WRITE responseFile( ' ],', CR )	
+			WRITE responseFile( '"error": [' )
+				WRITE responseFile( error_code,',' )
+				WRITE responseFile( '"',error_string,'"' )
+			WRITE responseFile( ' ] ', CR )
+		WRITE responseFile( '}')
+
+	CLOSE FILE responseFile
+
+END appmonitor

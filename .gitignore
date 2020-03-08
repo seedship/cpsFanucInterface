@@ -130,3 +130,7 @@ dmypy.json
 
 # JetBrains config
 .idea
+
+# KAREL and TP compiled objects
+*.pc
+*.tp

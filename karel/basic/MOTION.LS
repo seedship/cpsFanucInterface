@@ -1,0 +1,112 @@
+/PROG  MOTION
+/ATTR
+OWNER		= MNEDITOR;
+COMMENT		= "Motion using reg";
+PROG_SIZE	= 2064;
+CREATE		= DATE 17-10-19  TIME 13:19:58;
+MODIFIED	= DATE 17-10-20  TIME 11:30:06;
+FILE_NAME	= ;
+VERSION		= 0;
+LINE_COUNT	= 89;
+MEMORY_SIZE	= 2468;
+PROTECT		= READ_WRITE;
+TCD:  STACK_SIZE	= 0,
+      TASK_PRIORITY	= 50,
+      TIME_SLICE	= 0,
+      BUSY_LAMP_OFF	= 0,
+      ABORT_REQUEST	= 0,
+      PAUSE_REQUEST	= 0;
+DEFAULT_GROUP	= 1,*,*,*,*;
+CONTROL_CODE	= 00000000 00000000;
+/MN
+   1:  PAYLOAD[1] ;
+   2:   ;
+   3:  ! set the initial ;
+   4:  JMP LBL[999] ;
+   5:   ;
+   6:  LBL[7] ;
+   7:  ! wait for flag 7 to get on ;
+   8:  WAIT (F[7])    ;
+   9:  R[42]=0    ;
+  10:  !check the flags for the right po ;
+  11:  ! check joint relative motion wit ;
+  12:  IF (F[1]),JMP LBL[1] ;
+  13:  ! check joint absolut motion wiht ;
+  14:  IF (F[2]),JMP LBL[2] ;
+  15:  ! check cartesian absolut motion  ;
+  16:  IF (F[3]),JMP LBL[3] ;
+  17:  ! check for cartesian absolut mot ;
+  18:  IF (F[4]),JMP LBL[4] ;
+  19:  ! check for cartesuian relative m ;
+  20:  IF (F[5]),JMP LBL[5] ;
+  21:  ! check for cartesionan relative  ;
+  22:  IF (F[6]),JMP LBL[6] ;
+  23:   ;
+  24:  ! joint relative motion with join ;
+  25:  LBL[1] ;
+  26:  PR[40,1]=PR[40,1]+R[51]    ;
+  27:  PR[40,2]=PR[40,2]+R[52]    ;
+  28:  PR[40,3]=PR[40,3]+R[53]    ;
+  29:  PR[40,4]=PR[40,4]+R[54]    ;
+  30:  PR[40,5]=PR[40,5]+R[55]    ;
+  31:  PR[40,6]=PR[40,6]+R[56]    ;
+  32:J PR[40] 100% CNT100    ;
+  33:  JMP LBL[999] ;
+  34:   ;
+  35:  ! absolut joint moition with join ;
+  36:  LBL[2] ;
+  37:J PR[40] 100% CNT100    ;
+  38:  JMP LBL[999] ;
+  39:   ;
+  40:  ! absolut cartesian moition with  ;
+  41:  LBL[3] ;
+  42:J PR[41] 100% CNT100    ;
+  43:  JMP LBL[999] ;
+  44:   ;
+  45:  ! absolut cartesian moition with  ;
+  46:  LBL[4] ;
+  47:L PR[41] 5000mm/sec CNT100    ;
+  48:  JMP LBL[999] ;
+  49:   ;
+  50:  ! relative cartesian motion with  ;
+  51:  LBL[5] ;
+  52:  PR[41,1]=PR[41,1]+R[51]    ;
+  53:  PR[41,2]=PR[41,2]+R[52]    ;
+  54:  PR[41,3]=PR[41,3]+R[53]    ;
+  55:  PR[41,4]=PR[41,4]+R[54]    ;
+  56:  PR[41,5]=PR[41,5]+R[55]    ;
+  57:  PR[41,6]=PR[41,6]+R[56]    ;
+  58:J PR[41] 100% CNT100    ;
+  59:  JMP LBL[999] ;
+  60:   ;
+  61:  ! relative cartesian motion with  ;
+  62:  LBL[6] ;
+  63:  PR[41,1]=PR[41,1]+R[51]    ;
+  64:  PR[41,2]=PR[41,2]+R[52]    ;
+  65:  PR[41,3]=PR[41,3]+R[53]    ;
+  66:  PR[41,4]=PR[41,4]+R[54]    ;
+  67:  PR[41,5]=PR[41,5]+R[55]    ;
+  68:  PR[41,6]=PR[41,6]+R[56]    ;
+  69:L PR[41] 5000mm/sec CNT100    ;
+  70:  JMP LBL[999] ;
+  71:   ;
+  72:  ! default setting ;
+  73:  JMP LBL[999] ;
+  74:  LBL[999] ;
+  75:  F[1]=(OFF) ;
+  76:  F[2]=(OFF) ;
+  77:  F[3]=(OFF) ;
+  78:  F[4]=(OFF) ;
+  79:  F[5]=(OFF) ;
+  80:  F[6]=(OFF) ;
+  81:  F[7]=(OFF) ;
+  82:   ;
+  83:  R[51]=0    ;
+  84:  R[52]=0    ;
+  85:  R[53]=0    ;
+  86:  R[54]=0    ;
+  87:  R[55]=0    ;
+  88:  R[56]=0    ;
+  89:  JMP LBL[7] ;
+/POS
+/END
