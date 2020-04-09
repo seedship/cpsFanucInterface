@@ -1,0 +1,68 @@
+PROGRAM fv_client
+%STACKSIZE = 4000
+%NOLOCKGROUP
+%NOPAUSE=ERROR+COMMAND+TPENABLE
+%ENVIRONMENT uif
+%ENVIRONMENT sysdef
+%ENVIRONMENT memo
+%ENVIRONMENT kclop
+%ENVIRONMENT bynam
+%ENVIRONMENT fdev
+%ENVIRONMENT flbt
+%INCLUDE klevccdf
+%INCLUDE klevkeys
+%INCLUDE klevkmsk
+--------------------------------------------------------------------------------
+VAR 
+    target_pos : POSITION
+    target_id : INTEGER
+    connection : FILE
+    status : INTEGER
+    entry : INTEGER
+    pick_now : BOOLEAN -- the system has 2 states: picking or handling
+    main_loop :  BOOLEAN
+--------------------------------------------------------------------------------
+BEGIN
+    SET_FILE_ATR(connection, ATR_IA) --force reads to completion
+    -- SET_VAR(entry, ’*SYSTEM*’,’$HOSTC_CFG[2].$SERVER_PORT’,59002,status)  -- not sure about this, variable is never used again
+    pick_now = TRUE
+    WHILE main_loop = TRUE DO
+        IF pick_now = TRUE THEN
+            -- TODO point camera at the working area
+            -- Connect the tag
+            WRITE(’Connecting..’,cr)
+            MSG_CONNECT(’C2:’,status) -- C2 is a client tag connected to the REST service on the AI controller
+            WRITE(’ Connect Status = ’,status,cr)
+            loop1 = TRUE
+            IF status = 0 THEN
+            WHILE pick_now = TRUE DO
+                WRITE(’Opening File..’,cr)
+                OPEN FILE connection(’ro’,’C2:’)
+                status = IO_STATUS(connection)
+                IF status = 0 THEN
+                    -- TODO read JSON and parse picking positions
+                    IF target_id = 0 THEN
+                        -- pick first object id and set it in target_id
+                    ENDIF
+                    -- extract picking position for object with id = target_id
+                    -- TODO loop through picking positions 
+                        -- TODO if picking position is ok (compatible with safety, robot extention etc) 
+                            -- TODO update target_pos variable and pass it to the active motion command
+                    WRITE(’Closed File’,cr)
+                    CLOSE FILE connection
+                ELSE
+                    WRITE(’Error Opening File’,cr)
+                    main_loop = FALSE
+                ENDIF
+                -- TODO if motion finished and set pick_now to false and target_id to 0
+            ENDWHILE
+            WRITE(’Disconnecting..’,cr)
+            MSG_DISCO(’C2:’,status)
+            WRITE(’Done.’,cr)
+            pick_now = FALSE
+        ELSE
+            -- TODO we have picked the object perform specific handling
+            pick_now = TRUE
+        ENDIF 
+    ENDWHILE
+END
