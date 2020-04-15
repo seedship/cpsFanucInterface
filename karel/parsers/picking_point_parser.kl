@@ -1,0 +1,98 @@
+TYPE
+    picking_point = STRUCTURE
+        position: XYZWPR
+    ENDSTRUCTURE
+
+ROUTINE parsePickingPoint(original_text: STRING, text_index: INTEGER) : picking_point
+----------------------------------------------------
+-- Creation date: 2020.04.15
+-- Created by: 
+----------------------------------------------------
+-- Function: 
+----------------------------------------------------
+-- Arguments: 
+----------------------------------------------------
+-- Return value: 
+----------------------------------------------------
+-- Last modified: 2020.04.15
+-- Last modified by: 
+----------------------------------------------------
+
+VAR 
+    x: REAL
+    y: REAL
+    z: REAL
+    w: REAL
+    p: REAL
+    r: REAL
+    c: CHR
+    string_value: STRING[20]
+    key_pointer: INTEGER
+    searching: BOOLEAN
+    candidate: STRING[3]
+    loop1: BOOLEAN
+    reading: BOOLEAN
+    v: REAL
+    ret_val: picking_point
+BEGIN
+    searching = TRUE
+    key_pointer = 0
+    candidate = ''
+    loop1 = TRUE
+    reading = FALSE
+    string_value = ''
+    WHILE loop1 = TRUE DO
+        c = original_text[text_index]
+        text_index = text_index + 1
+        IF searching = TRUE THEN
+            IF ((key_pointer = 0 OR key_pointer = 2) AND c = '"') OR (key_pointer = 1 AND (c == 'x' OR c == 'y' OR c == 'z' OR c == 'w' OR c == 'p' OR c == 'r')) DO
+                candidate = candidate + c -- string sum
+                key_pointer = key_pointer + 1
+            ELSE
+                candidate = ''
+                key_pointer = 0
+            ENDIF
+            IF key_pointer = 3 THEN
+                searching = FALSE
+                key_pointer = 0
+            ENDIF
+        ELSE -- we found our candidate
+            IF reading = TRUE AND c <> ' ' AND c <> ',' AND c <> '}':
+                string_value = string_value + c -- string sum
+            ENDIF
+            IF c = ':' THEN
+                reading = TRUE
+            ENDIF
+            IF c = ',' OR c = '}' THEN
+                searching = TRUE
+                reading = FALSE
+                v = 0
+                -- v = real(string_value)
+                IF candidate[1] = 'x' THEN
+                    x = v
+                ENDIF
+                IF candidate[1] = 'y' THEN 
+                    x = v
+                ENDIF
+                IF candidate[1] = 'z' THEN 
+                    x = v
+                ENDIF
+                IF candidate[1] = 'w' THEN  
+                    x = v
+                ENDIF
+                IF candidate[1] = 'p' THEN 
+                    x = v
+                ENDIF
+                IF candidate[1] = 'r' THEN
+                    x = v
+                ENDIF
+                candidate = ''
+            ENDIF
+            IF c = '}' THEN
+                ret_val.position = XYZWPR(x,y,z,w,p,r) -- PSEUDOCODE
+                loop1 = FALSE
+            ENDIF
+        ENDIF
+    ENDWHILE
+    Return ret_val -- PSEUDOCODE
+END parsePickingPoint
