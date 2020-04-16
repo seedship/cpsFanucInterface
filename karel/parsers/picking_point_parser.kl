@@ -1,3 +1,8 @@
+PROGRAM picking_point_parser
+
+VAR
+    test_json = ''
+
 TYPE
     picking_point = STRUCTURE
         position: XYZWPR
@@ -101,3 +106,9 @@ BEGIN
     ENDWHILE
     RETURN (ret_val)
 END parsePickingPoint
+
+BEGIN
+    parsePickingPoint(test_json, 0)
+END
+
+END picking_point_parser
