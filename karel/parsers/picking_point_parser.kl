@@ -67,32 +67,37 @@ BEGIN
                 searching = TRUE
                 reading = FALSE
                 v = 0
-                -- v = real(string_value)
+                v = CNV_STR_REAL(string_value) -- v = real(string_value)
                 IF candidate[1] = 'x' THEN
                     x = v
                 ENDIF
                 IF candidate[1] = 'y' THEN 
-                    x = v
+                    y = v
                 ENDIF
                 IF candidate[1] = 'z' THEN 
-                    x = v
+                    z = v
                 ENDIF
                 IF candidate[1] = 'w' THEN  
-                    x = v
+                    w = v
                 ENDIF
                 IF candidate[1] = 'p' THEN 
-                    x = v
+                    p = v
                 ENDIF
                 IF candidate[1] = 'r' THEN
-                    x = v
+                    r = v
                 ENDIF
                 candidate = ''
             ENDIF
             IF c = '}' THEN
-                ret_val.position = XYZWPR(x,y,z,w,p,r) -- PSEUDOCODE
+                ret_val.position.x = x
+                ret_val.position.y = y
+                ret_val.position.z = z
+                ret_val.position.w = w
+                ret_val.position.p = p
+                ret_val.position.r = r
                 loop1 = FALSE
             ENDIF
         ENDIF
     ENDWHILE
-    Return ret_val -- PSEUDOCODE
+    RETURN (ret_val)
 END parsePickingPoint
