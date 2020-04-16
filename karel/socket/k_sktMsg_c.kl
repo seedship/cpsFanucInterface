@@ -1,0 +1,88 @@
+PROGRAM k_sktMsg_c
+
+%NOLOCKGROUP
+%NOBUSYLAMP
+
+VAR 
+	exFile : FILE
+
+	serverTag : STRING[8]
+	counter : INTEGER
+	serverMsg : STRING[50]
+	nBytes : INTEGER
+	listenToSer : BOOLEAN
+	entry : INTEGER
+	STATUS : INTEGER
+
+ROUTINE int_to_strg(int : INTEGER) : STRING FROM klutils
+
+ROUTINE checkError(operation : STRING)
+BEGIN
+	IF STATUS <> 0 THEN
+		WRITE TPDISPLAY('ERROR:  ' + operation,CR)
+		STATUS = 0
+    ENDIF
+END checkError
+
+ROUTINE connectServ
+BEGIN
+	listenToSer = TRUE
+	serverTag = 'C3:'
+
+	MSG_DISCO(serverTag, STATUS)
+	MSG_CONNECT(serverTag, STATUS)
+	checkError('Connecting to Server')
+
+	-- Open File
+	OPEN FILE exFile('RW', serverTag)
+
+	STATUS = IO_STATUS(exFile)
+
+	checkError('Opening File.')
+
+	WRITE TPDISPLAY('***Finished Connecting***',CR)
+END connectServ
+
+ROUTINE rcvServer
+VAR 
+    instrnDet : STRING[42]
+BEGIN
+	counter = 1
+
+	WHILE listenToSer DO
+		counter = counter + 1
+		serverMsg = int_to_strg(counter)
+
+		REPEAT
+			BYTES_AHEAD(exFile, nBytes, STATUS)
+
+			IF STATUS <> 0 THEN
+				nBytes = -1
+				STATUS = 0
+			ENDIF
+			DELAY 20
+		UNTIL nBytes > 0
+
+		IF nBytes >= 1 THEN
+			READ exFile(serverMsg::nBytes)
+			STATUS = IO_STATUS(exFile)
+
+			checkError('I/O_Status (File)')
+
+			instrnDet = SUB_STR(serverMsg, 5, (STR_LEN(serverMsg)))		--Get additional instruction details
+			serverMsg = SUB_STR(serverMsg, 1, 50) 						--Get instruction keyword
+
+			WRITE (serverMsg)		
+		ENDIF
+	ENDWHILE
+END rcvServer
+
+BEGIN
+	WRITE(CHR(128))
+
+	connectServ
+	WRITE TPDISPLAY('***',CR)
+	rcvServer
+	WRITE TPDISPLAY('***',CR)
+
+END k_sktMsg_c

@@ -1,0 +1,57 @@
+PROGRAM k_sktMsg_ini
+
+%NOLOCKGROUP
+%NOBUSYLAMP
+
+%INCLUDE klevkeys
+
+VAR 
+	portString  : STRING[5]
+	portInteger : INTEGER
+	
+	server		: STRING[32]
+	ip			: STRING[32]
+	protocol	: STRING[8]
+	statusDef 	: INTEGER
+
+	entry 		: INTEGER
+	STATUS	    : INTEGER
+
+BEGIN
+	-- IP of your SERVER (Robot will be Client)
+	ip = '127.0.0.1'
+	
+	-- Port Computer Server is listening to
+	portString = '65531'
+	-- Robot Communication Hub uses 65531
+	portInteger = 65531
+	
+	-- System variable for Client Settings
+	server  = '$HOSTC_CFG[3]'
+	
+	WRITE TPDISPLAY(CHR(128))
+
+	-- Set IP
+	SET_VAR(entry, '*SYSTEM*', server + '.$STRT_REMOTE', ip, STATUS)
+	
+	SET_VAR(entry, '*SYSTEM*', server + '.$STATE', 1, STATUS)
+	SET_VAR(entry, '*SYSTEM*', server + '.$OPER', 3, STATUS)
+		
+	-- Set Port
+	SET_VAR(entry, '*SYSTEM*', server + '.$PORT' , portString, STATUS)
+	SET_VAR(entry, '*SYSTEM*', server + '.$SERVER_PORT' , portInteger, STATUS)
+	
+	-- Set Protocol -> Socket Messaging
+	protocol = 'SM'
+	SET_VAR(entry, '*SYSTEM*', server + '.$PROTOCOL', protocol, STATUS)	
+		
+	-- Set Server Status -> DEFINED	
+	statusDef = 2
+	SET_VAR(entry, '*SYSTEM*', server + '.$STATE', statusDef, STATUS)
+	
+	--Reboot robot in COLD start
+	
+	
+    WRITE TPDISPLAY('DONE!',CR)
+
+END k_sktMsg_ini
