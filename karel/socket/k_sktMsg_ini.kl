@@ -10,7 +10,7 @@ VAR
 	portInteger : INTEGER
 	
 	server		: STRING[32]
-	ip			: STRING[32]
+	ip			: STRING[48]
 	protocol	: STRING[8]
 	statusDef 	: INTEGER
 
@@ -19,12 +19,14 @@ VAR
 
 BEGIN
 	-- IP of your SERVER (Robot will be Client)
-	ip = '127.0.0.1'
+	ip = '129.187.98.251'
+	--ip = '127.0.0.1'
 	
 	-- Port Computer Server is listening to
-	portString = '65531'
+	--portString = '65531'
+	portString = '8000'
 	-- Robot Communication Hub uses 65531
-	portInteger = 65531
+	portInteger = 8000
 	
 	-- System variable for Client Settings
 	server  = '$HOSTC_CFG[3]'
