@@ -19,7 +19,7 @@ VAR
 
 BEGIN
 	-- IP of your SERVER (Robot will be Client)
-	ip = '129.187.98.251'
+	ip = '10.162.12.162'
 	--ip = '127.0.0.1'
 	
 	-- Port Computer Server is listening to

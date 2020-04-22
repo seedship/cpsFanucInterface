@@ -3,12 +3,14 @@ PROGRAM k_sktMsg_c
 %NOLOCKGROUP
 %NOBUSYLAMP
 
+CONST
+    TP_WIDTH = 40
 VAR 
 	exFile : FILE
 
 	serverTag : STRING[8]
 	counter : INTEGER
-	serverMsg : STRING[250]
+	serverMsg : STRING[254]
 	nBytes : INTEGER
 	nBytes2 : INTEGER
 	listenToSer : BOOLEAN
@@ -24,6 +26,22 @@ BEGIN
         STATUS = 0
     ENDIF
 END checkError
+
+ROUTINE wrapPrint(wrapPrintText: STRING)
+VAR
+    len : INTEGER
+    printIdx : INTEGER
+    subPrintStr : STRING[TP_WIDTH]
+BEGIN
+    
+    len = STR_LEN(wrapPrintText)
+    printIdx = 1
+    WHILE printIdx <= len DO
+        subPrintStr = SUB_STR(wrapPrintText, printIdx, TP_WIDTH)
+        WRITE TPDISPLAY(subPrintStr, CR)
+        printIdx = printIdx + TP_WIDTH
+    ENDWHILE
+END wrapPrint
 
 ROUTINE connectServ
 BEGIN
@@ -44,30 +62,15 @@ BEGIN
     checkError('Opening File.')
 
     WRITE TPDISPLAY('***Finished Connecting***',CR)
-    
-    BYTES_AHEAD(exFile, nBytes, STATUS)
-    nBytes2 = BYTES_LEFT(exFile)
-    WRITE('STATUS: ', STATUS, 'nBytes: ', nBytes, 'nBytes2: ', nBytes2, CR)
 
-    WRITE exFile('GET /collectors/?format=json', CR, CR)
+    WRITE exFile('GET /robot_position/?format=json', CR, CR)
     WRITE TPDISPLAY('***Sent Get Request***',CR)
-    
-    DELAY 100
-    
-    BYTES_AHEAD(exFile, nBytes, STATUS)
-    nBytes2 = BYTES_LEFT(exFile)
-    WRITE('STATUS: ', STATUS, 'nBytes: ', nBytes, 'nBytes2: ', nBytes2, CR)
         
 END connectServ
 
 ROUTINE rcvServer
 BEGIN
-    counter = 1
-    
     WHILE listenToSer DO
-        counter = counter + 1
-        serverMsg = int_to_strg(counter)
-        
         REPEAT
             BYTES_AHEAD(exFile, nBytes, STATUS)           
             IF STATUS <> 0 THEN
@@ -85,11 +88,12 @@ BEGIN
             
             checkError('I/O_Status (File)')
             
-            WRITE TPDISPLAY(serverMsg, CR)
-            WRITE TPDISPLAY('01234567891123456789212345678931234567894123456789', CR)
+            wrapPrint(serverMsg)
         ENDIF
     ENDWHILE
 END rcvServer
+    
+    
 
 BEGIN
 	WRITE(CHR(128))
