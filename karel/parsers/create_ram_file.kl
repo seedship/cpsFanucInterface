@@ -1,0 +1,50 @@
+PROGRAM create_ram_file
+	CONST
+		file_path = 'RD:test_file.dt'
+	VAR
+		file_var : FILE
+		read_str: STRING[3]
+		file_position : INTEGER
+		status: INTEGER
+	BEGIN
+		-- variable initialitazion and prints
+		WRITE('begin script', CR)
+		read_str = ''
+
+		-- creation of RAM file (RW creates the file if it is not already there)
+		OPEN FILE file_var ('RW', file_path)
+		status = IO_STATUS(file_var)
+		WRITE('open status ', status, CR)
+
+		-- check initial RAM file position
+		file_position = GET_FILE_POS(file_var)
+		WRITE('file position ', file_position, CR)
+
+		-- write test string into the file
+		WRITE file_var ('Test string')
+		status = IO_STATUS(file_var)
+		WRITE('write status ', status, CR)
+
+		-- check the position has been updated
+		file_position = GET_FILE_POS(file_var)
+		WRITE('file position ', file_position, CR)
+
+		-- close file 
+		CLOSE FILE file_var
+
+		-- reopen it with ud to reset position
+		OPEN FILE file_var ('UD', file_path)
+		status = IO_STATUS(file_var)
+		WRITE('open status ', status, CR)
+
+		-- check position has been reset
+		file_position = GET_FILE_POS(file_var)
+		WRITE('file position ', file_position, CR)
+
+		-- read the file
+		READ file_var(read_str)
+		status = IO_STATUS(file_var)
+		WRITE('read status ', status, CR)
+		WRITE('Read string ', read_str, CR)
+
+END create_ram_file

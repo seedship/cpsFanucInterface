@@ -116,6 +116,6 @@ ROUTINE parsePickingPoint(original_text: STRING; text_index: INTEGER) : picking_
 
 BEGIN
     test_json = '{"x":0, "y":0, "z":0, "w":0, "p":0, "r":0}'
-    res =  parsePickingPoint(test_json, 0)
+    res =  parsePickingPoint(test_json, 1)
     WRITE(res)
 END picking_point_parser

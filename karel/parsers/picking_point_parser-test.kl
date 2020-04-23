@@ -8,9 +8,9 @@ TYPE
     ENDSTRUCTURE
     
 VAR
- 	 test_json : STRING[254]
- 	 res : picking_point
-	 text_index: INTEGER
+ 	test_json : STRING[254]
+ 	res : picking_point
+	text_index: INTEGER
 ROUTINE parsePickingPoint(original_text: STRING; text_index: INTEGER)
 ----------------------------------------------------
 -- Creation date: 2020.04.15
@@ -55,8 +55,7 @@ ROUTINE parsePickingPoint(original_text: STRING; text_index: INTEGER)
 	    WRITE('original text', original_text, CR)
 	    
 	     WHILE loop1 = TRUE DO
-	     	
-             c = SUB_STR(original_text, text_index, 1)
+			c = SUB_STR(original_text, text_index, 1)
             text_index = text_index + 1
             IF searching = TRUE THEN
                 IF ((((key_pointer = 0) OR (key_pointer=2)) AND (c = '"')) OR ((key_pointer = 1) AND ((c = 'x') OR (c='y')))) THEN
@@ -72,22 +71,21 @@ ROUTINE parsePickingPoint(original_text: STRING; text_index: INTEGER)
                     key_pointer = 0
                     c_1 = SUB_STR(candidate, 2, 1)
                 ENDIF
-           -- ELSE
-             --   IF c = ':' THEN
-	         --       reading = TRUE
-	    -- ENDIF
-                	--IF ((c = ',') OR (c = '}')) THEN
-	                searching = TRUE
-	                reading = FALSE
-	                WRITE('honey')
-	              --  WRITE('c1=', c_1, CR)
-	                -- WRITE('string_value=', string_value, CR)
-	           --     candidate = ''
-                --	ENDIF
-                
-	            IF c = '}' THEN
-	                loop1 = FALSE
-	            ENDIF
+           	-- ELSE -- this guy
+             	    --IF c = ':' THEN
+	         	    --  reading = TRUE
+	    		    -- ENDIF
+                	-- IF ((c = ',') OR (c = '}')) THEN
+	                	searching = TRUE
+	                	reading = FALSE
+	                --	WRITE('testone')
+	                --	WRITE('c1=', c_1, CR)
+	                --	WRITE('string_value=', string_value, CR)
+	                --	candidate = ''
+                	-- ENDIF
+	            	IF c = '}' THEN
+	                	loop1 = FALSE
+	            	ENDIF
             ENDIF
           ENDWHILE
             WRITE('final candidate', candidate, CR)
