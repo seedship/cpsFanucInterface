@@ -3,7 +3,10 @@ PROGRAM create_ram_file
 		file_path = 'RD:test_file.dt'
 	VAR
 		file_var : FILE
-		read_str: STRING[3]
+		read_str: STRING[254]
+		buffer_string: STRING[254]
+		read_starting_from: INTEGER
+		file_position_after_writing : INTEGER
 		file_position : INTEGER
 		status: INTEGER
 	BEGIN
@@ -26,8 +29,8 @@ PROGRAM create_ram_file
 		WRITE('write status ', status, CR)
 
 		-- check the position has been updated
-		file_position = GET_FILE_POS(file_var)
-		WRITE('file position ', file_position, CR)
+		file_position_after_writing = GET_FILE_POS(file_var)
+		WRITE('file position after writing', file_position_after_writing, CR)
 
 		-- close file 
 		CLOSE FILE file_var
@@ -42,9 +45,38 @@ PROGRAM create_ram_file
 		WRITE('file position ', file_position, CR)
 
 		-- read the file
-		READ file_var(read_str)
+		-- goal: access the file at a given 'position' and read from there
+		READ file_var(read_str::file_position_after_writing)
 		status = IO_STATUS(file_var)
 		WRITE('read status ', status, CR)
 		WRITE('Read string ', read_str, CR)
+
+		-- close file 
+		CLOSE FILE file_var
+
+		read_starting_from = 5
+
+		-- reopen it with ud to reset position
+		OPEN FILE file_var ('UD', file_path)
+		status = IO_STATUS(file_var)
+		WRITE('open status ', status, CR)
+
+		READ file_var(buffer_string::read_starting_from)
+		status = IO_STATUS(file_var)
+		WRITE('read status ', status, CR)
+
+		-- check position has been reset
+		file_position = GET_FILE_POS(file_var)
+		WRITE('file position ', file_position, CR)
+
+		-- BYTES_AHEAD(file_var, file_position_after_writing, status)
+
+		-- WRITE('Bytes ahead status ', status, CR)
+
+		READ file_var(read_str::file_position_after_writing-file_position)
+		status = IO_STATUS(file_var)
+		WRITE('read status ', status, CR)
+		WRITE('Read string ', read_str, CR)
+
 
 END create_ram_file
