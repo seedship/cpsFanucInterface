@@ -8,6 +8,10 @@ VAR
 	ramFile : FILE
 	STATUS : INTEGER
 
+	-- only for debug printing the saved ramfile
+	printStr : String[40]
+	count : INTEGER
+
 %INCLUDE ../util/util
 
 ROUTINE connectServ(serverTag : STRING)
@@ -25,7 +29,7 @@ BEGIN
 	checkError('Opening File.', STATUS)
 END connectServ
 
-ROUTINE requestData : INTEGER
+ROUTINE requestData(file_path : STRING) : INTEGER
 VAR
 	nBytes : INTEGER
 	serverMsg : STRING[254]
@@ -38,29 +42,46 @@ BEGIN
 		ENDIF
 		DELAY 100
 	UNTIL nBytes > 0
-    
-	WHILE nBytes >= 1 DO
+	
+	OPEN FILE ramFile('RW', file_path)
+	STATUS = IO_STATUS(ramFile)
+	checkError('Opening RAMFile', STATUS)
+
+	WHILE nBytes > 0 DO
 		READ connFile(serverMsg::nBytes)
 		STATUS = IO_STATUS(connFile)
 
 		checkError('I/O_Status (File)', STATUS)
 
-		wrapPrint(serverMsg)
+		--wrapPrint(serverMsg)
+		WRITE ramFile(serverMsg)
 		
 		BYTES_AHEAD(connFile, nBytes, STATUS)           
 		IF STATUS <> 0 THEN
+			CLOSE FILE ramFile
 			RETURN (-1)
 		ENDIF
 		
 	ENDWHILE
+	CLOSE FILE ramFile
 	RETURN (0)
 END requestData
    
 BEGIN
 	connectServ('C3:')
-	STATUS  = requestData
+	STATUS  = requestData('RD:read.dt')
 	checkError('requestData', STATUS)
-	
 	CLOSE FILE connFile
+
+	-- debug printing the saved ramfile
+	OPEN FILE ramFile('RO', 'RD:read.dt')
+	STATUS = IO_STATUS(ramFile)
+	checkError('Open RAMFILE', STATUS)
+		
+	WHILE TRUE DO
+		READ ramFile(printStr::40)
+		WRITE(printStr, CR)
+	ENDWHILE
+		
 
 END k_sktMsg_c

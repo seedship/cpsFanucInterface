@@ -19,7 +19,7 @@ BEGIN
     printIdx = 1
     WHILE printIdx <= len DO
         subPrintStr = SUB_STR(wrapPrintText, printIdx, TP_WIDTH)
-        WRITE TPDISPLAY(subPrintStr, CR)
+        WRITE (subPrintStr, CR)
         printIdx = printIdx + TP_WIDTH
     ENDWHILE
 END wrapPrint
@@ -29,7 +29,7 @@ END wrapPrint
 ROUTINE checkError(operation : STRING; status : INTEGER)
 BEGIN
     IF status <> 0 THEN
-        WRITE TPDISPLAY('ERROR:  ' + operation,CR)
+        WRITE ('ERROR:  ' + operation,CR)
         status = 0
     ENDIF
 END checkError
