@@ -1,0 +1,35 @@
+
+
+--PROGRAM util
+--%NOLOCKGROUP
+--%NOPAUSE= COMMAND + TPENABLE + ERROR
+CONST
+    TP_WIDTH = 40
+
+--BEGIN
+--END util
+
+ROUTINE wrapPrint(wrapPrintText : STRING)
+VAR
+    len : INTEGER
+    printIdx : INTEGER
+    subPrintStr : STRING[TP_WIDTH]
+BEGIN
+    len = STR_LEN(wrapPrintText)
+    printIdx = 1
+    WHILE printIdx <= len DO
+        subPrintStr = SUB_STR(wrapPrintText, printIdx, TP_WIDTH)
+        WRITE TPDISPLAY(subPrintStr, CR)
+        printIdx = printIdx + TP_WIDTH
+    ENDWHILE
+END wrapPrint
+
+--ROUTINE intToString(int : INTEGER) : STRING FROM klutils
+
+ROUTINE checkError(operation : STRING; status : INTEGER)
+BEGIN
+    IF status <> 0 THEN
+        WRITE TPDISPLAY('ERROR:  ' + operation,CR)
+        status = 0
+    ENDIF
+END checkError

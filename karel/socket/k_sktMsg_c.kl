@@ -3,9 +3,7 @@ PROGRAM k_sktMsg_c
 %NOLOCKGROUP
 %NOBUSYLAMP
 
-CONST
-    TP_WIDTH = 40
-VAR 
+VAR
 	exFile : FILE
 
 	serverTag : STRING[8]
@@ -17,31 +15,7 @@ VAR
 	entry : INTEGER
 	STATUS : INTEGER
 
-ROUTINE int_to_strg(int : INTEGER) : STRING FROM klutils
-
-ROUTINE checkError(operation : STRING)
-BEGIN
-    IF STATUS <> 0 THEN
-        WRITE TPDISPLAY('ERROR:  ' + operation,CR)
-        STATUS = 0
-    ENDIF
-END checkError
-
-ROUTINE wrapPrint(wrapPrintText: STRING)
-VAR
-    len : INTEGER
-    printIdx : INTEGER
-    subPrintStr : STRING[TP_WIDTH]
-BEGIN
-    
-    len = STR_LEN(wrapPrintText)
-    printIdx = 1
-    WHILE printIdx <= len DO
-        subPrintStr = SUB_STR(wrapPrintText, printIdx, TP_WIDTH)
-        WRITE TPDISPLAY(subPrintStr, CR)
-        printIdx = printIdx + TP_WIDTH
-    ENDWHILE
-END wrapPrint
+%INCLUDE ../util/util
 
 ROUTINE connectServ
 BEGIN
@@ -52,14 +26,14 @@ BEGIN
     MSG_DISCO(serverTag, STATUS)
     MSG_CONNECT(serverTag, STATUS)
     
-    checkError('Connecting to Server')
+    checkError('Connecting to Server', STATUS)
 
     -- Open File
     OPEN FILE exFile('RW', serverTag)
     
     STATUS = IO_STATUS(exFile)
     
-    checkError('Opening File.')
+    checkError('Opening File.', STATUS)
 
     WRITE TPDISPLAY('***Finished Connecting***',CR)
 
@@ -86,7 +60,7 @@ BEGIN
             READ exFile(serverMsg::nBytes)
             STATUS = IO_STATUS(exFile)
             
-            checkError('I/O_Status (File)')
+            checkError('I/O_Status (File)', STATUS)
             
             wrapPrint(serverMsg)
         ENDIF
