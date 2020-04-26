@@ -4,77 +4,63 @@ PROGRAM k_sktMsg_c
 %NOBUSYLAMP
 
 VAR
-	exFile : FILE
-
-	serverTag : STRING[8]
-	counter : INTEGER
-	serverMsg : STRING[254]
-	nBytes : INTEGER
-	nBytes2 : INTEGER
-	listenToSer : BOOLEAN
-	entry : INTEGER
+	connFile : FILE
+	ramFile : FILE
 	STATUS : INTEGER
 
 %INCLUDE ../util/util
 
-ROUTINE connectServ
+ROUTINE connectServ(serverTag : STRING)
 BEGIN
-    listenToSer = TRUE
-    
-    serverTag = 'C3:'
-    
-    MSG_DISCO(serverTag, STATUS)
-    MSG_CONNECT(serverTag, STATUS)
-    
-    checkError('Connecting to Server', STATUS)
+	MSG_DISCO(serverTag, STATUS)
+	MSG_CONNECT(serverTag, STATUS)
 
-    -- Open File
-    OPEN FILE exFile('RW', serverTag)
-    
-    STATUS = IO_STATUS(exFile)
-    
-    checkError('Opening File.', STATUS)
+	checkError('Connecting to Server', STATUS)
 
-    WRITE TPDISPLAY('***Finished Connecting***',CR)
+	-- Open File
+	OPEN FILE connFile('RW', serverTag)
 
-    WRITE exFile('GET /robot_position/?format=json', CR, CR)
-    WRITE TPDISPLAY('***Sent Get Request***',CR)
-        
+	STATUS = IO_STATUS(connFile)
+
+	checkError('Opening File.', STATUS)
 END connectServ
 
-ROUTINE rcvServer
+ROUTINE requestData : INTEGER
+VAR
+	nBytes : INTEGER
+	serverMsg : STRING[254]
 BEGIN
-    WHILE listenToSer DO
-        REPEAT
-            BYTES_AHEAD(exFile, nBytes, STATUS)           
-            IF STATUS <> 0 THEN
-                nBytes = -1
-                STATUS = 0
-            ENDIF
-            
-            DELAY 100
-                
-        UNTIL nBytes > 0
-        
-        IF nBytes >= 1 THEN
-            READ exFile(serverMsg::nBytes)
-            STATUS = IO_STATUS(exFile)
-            
-            checkError('I/O_Status (File)', STATUS)
-            
-            wrapPrint(serverMsg)
-        ENDIF
-    ENDWHILE
-END rcvServer
+	WRITE connFile('GET /robot_position/?format=json', CR, CR)
+	REPEAT
+		BYTES_AHEAD(connFile, nBytes, STATUS)           
+		IF STATUS <> 0 THEN
+			RETURN (-1)
+		ENDIF
+		DELAY 100
+	UNTIL nBytes > 0
     
-    
+	WHILE nBytes >= 1 DO
+		READ connFile(serverMsg::nBytes)
+		STATUS = IO_STATUS(connFile)
 
+		checkError('I/O_Status (File)', STATUS)
+
+		wrapPrint(serverMsg)
+		
+		BYTES_AHEAD(connFile, nBytes, STATUS)           
+		IF STATUS <> 0 THEN
+			RETURN (-1)
+		ENDIF
+		
+	ENDWHILE
+	RETURN (0)
+END requestData
+   
 BEGIN
-	WRITE(CHR(128))
-
-	connectServ
-	WRITE TPDISPLAY('***',CR)
-	rcvServer
-	WRITE TPDISPLAY('***',CR)
+	connectServ('C3:')
+	STATUS  = requestData
+	checkError('requestData', STATUS)
+	
+	CLOSE FILE connFile
 
 END k_sktMsg_c
