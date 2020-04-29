@@ -69,18 +69,37 @@ END requestData
    
 BEGIN
 	connectServ('C3:')
-	STATUS  = requestData('RD:read.dt')
+	STATUS  = requestData('PIP:read.dt')
 	checkError('requestData', STATUS)
 	CLOSE FILE connFile
 
 	-- debug printing the saved ramfile
-	OPEN FILE ramFile('RO', 'RD:read.dt')
+	OPEN FILE ramFile('RO', 'PIP:read.dt')
 	STATUS = IO_STATUS(ramFile)
 	checkError('Open RAMFILE', STATUS)
-		
-	WHILE TRUE DO
-		READ ramFile(printStr::40)
-		WRITE(printStr, CR)
+	
+	SET_FILE_ATR(ramFile, ATR_PIPWAIT, WAIT_USED) -- force READS to wait
+	SET_FILE_ATR(ramFile, ATR_TIMEOUT, (1*1000))  -- READs timeout after 1*1000ms
+	
+	--SET_FILE_POS(ramFile, 400, STATUS)
+	--checkError('set pos', STATUS)
+	
+	BYTES_AHEAD(ramFile, count, STATUS)
+	checkError('Bytes Ahead 0', STATUS)
+	
+	WHILE count > 0 DO
+		IF count >= 40 THEN
+			READ ramFile(printStr::40)
+			WRITE(printStr, CR)
+		ELSE
+			READ ramFile(printStr::count)
+			printStr = SUB_STR(printStr, 1, count)
+			WRITE(printStr, CR)
+		ENDIF
+	
+		BYTES_AHEAD(ramFile, count, STATUS)
+		checkError('Bytes Ahead 1', STATUS)
+	
 	ENDWHILE
 		
 

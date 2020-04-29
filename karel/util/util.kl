@@ -30,6 +30,7 @@ ROUTINE checkError(operation : STRING; status : INTEGER)
 BEGIN
     IF status <> 0 THEN
         WRITE ('ERROR:  ' + operation,CR)
+        WRITE ('STATUS: ', status, CR)
         status = 0
     ENDIF
 END checkError
