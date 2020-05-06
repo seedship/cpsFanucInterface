@@ -10,10 +10,10 @@ TYPE
 
 VAR
 	connFile : FILE
-	ramFile : FILE
+	pipeFile : FILE
 	STATUS : INTEGER
 
-	-- only for debug printing the saved ramfile
+	-- only for debug printing the saved pipeFile
 	printStr : String[40]
 	count : INTEGER
 
@@ -48,9 +48,9 @@ BEGIN
 		DELAY 100
 	UNTIL nBytes > 0
 	
-	OPEN FILE ramFile('RW', file_path)
-	STATUS = IO_STATUS(ramFile)
-	checkError('Opening RAMFile', STATUS)
+	OPEN FILE pipeFile('RW', file_path)
+	STATUS = IO_STATUS(pipeFile)
+	checkError('Opening pipeFile', STATUS)
 
 	WHILE nBytes > 0 DO
 		READ connFile(serverMsg::nBytes)
@@ -59,20 +59,20 @@ BEGIN
 		checkError('I/O_Status (File)', STATUS)
 
 		--wrapPrint(serverMsg)
-		WRITE ramFile(serverMsg)
+		WRITE pipeFile(serverMsg)
 		
 		BYTES_AHEAD(connFile, nBytes, STATUS)           
 		IF STATUS <> 0 THEN
-			CLOSE FILE ramFile
+			CLOSE FILE pipeFile
 			RETURN (-1)
 		ENDIF
 		
 	ENDWHILE
-	CLOSE FILE ramFile
+	CLOSE FILE pipeFile
 	RETURN (0)
 END requestData
 
-ROUTINE parseJsonFile(ramFile : FILE; text_index: INTEGER)
+ROUTINE parseJsonFile(pipeFile : FILE; text_index: INTEGER)
 VAR
 	status: INTEGER
 	count: INTEGER
@@ -95,58 +95,54 @@ VAR
 	v : REAL
 	ret_val : picking_point
 BEGIN
-	BYTES_AHEAD(ramFile, count, STATUS)
-	checkError('Bytes Ahead 0', STATUS)
-	
-	-- WHILE count > 0 DO
-	-- 	IF count >= 40 THEN
-	-- 		READ ramFile(printStr::40)
-	-- 		WRITE(printStr, CR)
-	-- 	ELSE
-	-- 		READ ramFile(printStr::count)
-	-- 		printStr = SUB_STR(printStr, 1, count)
-	-- 		WRITE(printStr, CR)
-	-- 	ENDIF
-	
-	-- 	BYTES_AHEAD(ramFile, count, STATUS)
-	-- 	checkError('Bytes Ahead 1', STATUS)
-	
-	-- ENDWHILE
+	BYTES_AHEAD(pipeFile, count, status)
+	checkError('Bytes Ahead 0', status)
 
 	WRITE('initial count ', count, CR)
 
 	IF count > 0 THEN
-		READ ramFile(c::1)
+		READ pipeFile(c::1)
 	ENDIF
 	
-	BYTES_AHEAD(ramFile, count, STATUS)
+	BYTES_AHEAD(pipeFile, count, STATUS)
 	WRITE('final count ', count, CR)
 	WRITE('c ', c, CR)
 
 	-- old function
 
-	-- searching = TRUE
-	-- key_pointer = 0
-	-- candidate = ''
-	-- loop1 = TRUE
-	-- reading = FALSE
-	-- string_value = ''
+	searching = FALSE
+	key_pointer = 0
+	candidate = ''
+	loop1 = TRUE
+	reading = FALSE
+	string_value = ''
 	-- -- prints for testing
-	-- WRITE('text_index', text_index, CR)
-	-- WRITE('original text', original_text, CR)
+	WRITE('text_index', text_index, CR)
 	
-	-- WHILE loop1 = TRUE DO
+	WHILE loop1 = TRUE DO
 	-- c = SUB_STR(original_text, text_index, 1)
+	READ pipeFile(c::1)
+	BYTES_AHEAD(pipeFile, count, STATUS)
+
+	IF (c <> '[') AND (c <> '{') THEN
+		searching = TRUE
+	ENDIF
 	-- text_index = text_index + 1
-	-- IF searching = TRUE THEN
-	-- 	IF ((((key_pointer = 0) OR (key_pointer=2)) AND (c = '"')) OR ((key_pointer = 1) AND ((c = 'x') OR (c='y')))) THEN
-	-- 			candidate = candidate + c
-	-- 			WRITE('candidate=', candidate, CR)
-	-- 			key_pointer = key_pointer + 1
-	-- 	ELSE
-	-- 		candidate = ''
-	-- 		key_pointer = 0
-	-- 	ENDIF
+	IF searching = TRUE THEN
+		IF ((((key_pointer = 0) OR (key_pointer=2)) AND (c = '"')) OR ((key_pointer = 1) AND ((c = 'x') OR (c='y')))) THEN
+					candidate = candidate + c
+					WRITE('candidate=', candidate, CR)
+					key_pointer = key_pointer + 1
+		ELSE
+			candidate = ''
+			key_pointer = 0
+		ENDIF
+	-- begin testing
+		IF key_pointer = 3 THEN
+			searching = FALSE
+			loop1 = FALSE
+		ENDIF
+	-- end testing 
 	-- 	IF key_pointer = 3 THEN
 	-- 		searching = FALSE
 	-- 		key_pointer = 0
@@ -167,9 +163,8 @@ BEGIN
 	-- 		IF c = '}' THEN
 	-- 			loop1 = FALSE
 	-- 		ENDIF
-	-- ENDIF
-	-- ENDWHILE
-	-- WRITE('final candidate', candidate, CR)
+	ENDIF
+	ENDWHILE
 END parseJsonFile
    
 BEGIN
@@ -178,18 +173,33 @@ BEGIN
 	checkError('requestData', STATUS)
 	CLOSE FILE connFile
 
-	-- debug printing the saved ramfile
-	OPEN FILE ramFile('RO', 'PIP:read.dt')
-	STATUS = IO_STATUS(ramFile)
-	checkError('Open RAMFILE', STATUS)
+	-- debug printing the saved pipeFile
+	OPEN FILE pipeFile('RO', 'PIP:read.dt')
+	STATUS = IO_STATUS(pipeFile)
+	checkError('Open pipeFile', STATUS)
 	
-	SET_FILE_ATR(ramFile, ATR_PIPWAIT, WAIT_USED) -- force READS to wait
-	SET_FILE_ATR(ramFile, ATR_TIMEOUT, (1*1000))  -- READs timeout after 1*1000ms
+	SET_FILE_ATR(pipeFile, ATR_PIPWAIT, WAIT_USED) -- force READS to wait
+	SET_FILE_ATR(pipeFile, ATR_TIMEOUT, (1*1000))  -- READs timeout after 1*1000ms
 	
-	--SET_FILE_POS(ramFile, 400, STATUS)
+	--SET_FILE_POS(pipeFile, 400, STATUS)
 	--checkError('set pos', STATUS)
+
+	--  WHILE count > 0 DO
+	--  	IF count >= 40 THEN
+	--  		READ pipeFile(printStr::40)
+	--  		WRITE(printStr, CR)
+	--  	ELSE
+	-- 		READ pipeFile(printStr::count)
+	-- 		printStr = SUB_STR(printStr, 1, count)
+	-- 		WRITE(printStr, CR)
+	--  	ENDIF
 	
-	parseJsonFile(ramFile, 1)
+	-- 	BYTES_AHEAD(pipeFile, count, STATUS)
+	--  	checkError('Bytes Ahead 1', STATUS)
+	
+	--  ENDWHILE
+	
+	parseJsonFile(pipeFile, 1)
 		
 
 END k_sktMsg_c

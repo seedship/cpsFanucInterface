@@ -9,6 +9,30 @@ PROGRAM create_ram_file
 		file_position_after_writing : INTEGER
 		file_position : INTEGER
 		status: INTEGER
+
+	ROUTINE readRamFileFromIndex(file_path: STRING; index, file_length: INTEGER): STRING
+	VAR
+		buffer_string: STRING[254]
+		read_str: STRING[254]
+	BEGIN
+		-- reopen it with ud to reset position
+		OPEN FILE file_var ('UD', file_path)
+		status = IO_STATUS(file_var)
+		WRITE('open status inside routine', status, CR)
+
+		READ file_var(buffer_string::index)
+		status = IO_STATUS(file_var)
+		WRITE('read status inside rputine', status, CR)
+
+		file_position = GET_FILE_POS(file_var)
+
+		READ file_var(read_str::file_length-file_position)
+		status = IO_STATUS(file_var)
+		WRITE('read status ', status, CR)
+		WRITE('Read string ', read_str, CR)
+		RETURN (read_str)
+	END readRamFileFromIndex
+
 	BEGIN
 		-- variable initialitazion and prints
 		WRITE('begin script', CR)
