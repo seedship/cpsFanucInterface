@@ -134,3 +134,4 @@ dmypy.json
 # KAREL and TP compiled objects
 *.pc
 *.tp
+.DS_Store
