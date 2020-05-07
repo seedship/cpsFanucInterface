@@ -12,6 +12,7 @@ VAR
 	connFile : FILE
 	pipeFile : FILE
 	STATUS : INTEGER
+	fetched_picking_point: picking_point
 
 	-- only for debug printing the saved pipeFile
 	printStr : String[40]
@@ -72,7 +73,7 @@ BEGIN
 	RETURN (0)
 END requestData
 
-ROUTINE parseJsonFile(pipeFile : FILE; text_index: INTEGER)
+ROUTINE parseJsonFile(pipeFile : FILE) : picking_point
 VAR
 	status: INTEGER
 	count: INTEGER
@@ -168,14 +169,16 @@ BEGIN
 			ENDIF
 		ENDIF
 	ENDWHILE
-	WRITE('x', x, CR)
-	WRITE('y', y, CR)
-	WRITE('z', z, CR)
-	WRITE('phi', w, CR)
-	WRITE('theta', p, CR)
-	WRITE('psi', r, CR)
+	
+	-- initialize picking_point structure with parsed data
+	ret_val.picker_position.x = x
+	ret_val.picker_position.y = y
+	ret_val.picker_position.z = z
+	ret_val.picker_position.w = w
+	ret_val.picker_position.p = p
+	ret_val.picker_position.r = r
+	RETURN (ret_val)
 
-	-- TODO: inizialize picking_point stricture with the parsed data and return it
 END parseJsonFile
    
 BEGIN
@@ -210,7 +213,7 @@ BEGIN
 	
 	--  ENDWHILE
 	
-	parseJsonFile(pipeFile, 1)
-		
+	fetched_picking_point = parseJsonFile(pipeFile)
+	WRITE('fetched_picking_point ', fetched_picking_point.picker_position, CR)
 
 END k_sktMsg_c
