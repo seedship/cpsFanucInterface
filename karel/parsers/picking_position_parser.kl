@@ -1,0 +1,116 @@
+ROUTINE parsePickingPosition(pipeFile : FILE) : picking_point
+VAR
+	status: INTEGER
+	count: INTEGER
+	read_str: STRING[100]
+	x : REAL
+	y : REAL
+	z : REAL
+	w : REAL
+	p : REAL
+	r : REAL
+	c : STRING[1]
+	c_1 : STRING[50]
+	key_length : INTEGER
+	string_value : STRING[20]
+	quote_count : INTEGER
+	searching : BOOLEAN
+	candidate : STRING[52]
+	reading : BOOLEAN
+	v : REAL
+	ret_val : picking_point
+BEGIN
+	BYTES_AHEAD(pipeFile, count, status)
+	checkError('Bytes Ahead 0', status)
+	searching = TRUE
+	quote_count = 0
+	candidate = ''
+	reading = FALSE
+	string_value = ''
+	c = ''
+	v = 0
+	key_length = 0
+	
+	WHILE count > 0 DO
+		READ pipeFile(c::1)
+		BYTES_AHEAD(pipeFile, count, status)
+		checkError('Bytes Ahead inside loop', status)
+
+		WHILE (c = '[') OR (c = '{') DO
+			READ pipeFile(c::1)
+			BYTES_AHEAD(pipeFile, count, status)
+		ENDWHILE
+
+		IF searching = TRUE THEN
+			IF ((((quote_count = 0) OR (quote_count=1)) AND (c = '"'))) THEN
+				candidate = candidate + c
+				quote_count = quote_count + 1
+			ENDIF
+			IF ((quote_count = 1) AND (c <> '"')) THEN
+				candidate = candidate + c
+				key_length = key_length + 1
+			ENDIF
+			IF quote_count = 2 THEN
+				searching = FALSE
+				c_1 = SUB_STR(candidate, 2, key_length)
+				quote_count = 0
+				key_length = 0
+			ENDIF
+		ELSE
+			IF (reading = TRUE) THEN
+				IF (c <> ' ') AND (c <> ',') AND (c <> '}') THEN
+					string_value = string_value + c
+				ELSE
+					CNV_STR_REAL(string_value, v)
+					string_value = ''
+					reading = FALSE
+				ENDIF
+			ENDIF
+			IF c = ':' THEN
+				reading = TRUE
+			ENDIF
+			IF (c = ',') OR (c = '}') THEN
+				searching = TRUE
+				reading = FALSE
+				IF  c_1 = 'x' THEN
+					x = v
+				ENDIF
+				IF  c_1 = 'y' THEN 
+					y = v
+				ENDIF
+				IF  c_1 = 'z' THEN 
+					z = v
+				ENDIF
+				IF c_1 = 'phi' THEN  
+					w = v
+				ENDIF
+				IF  c_1 = 'theta' THEN 
+					p = v
+				ENDIF
+				IF  c_1 = 'psi' THEN
+					r = v
+				ENDIF
+				candidate = ''
+			ENDIF
+		ENDIF
+	ENDWHILE
+	
+	-- initialize picking_point structure with parsed data
+	ret_val.picker_position.x = x
+	ret_val.picker_position.y = y
+	ret_val.picker_position.z = z
+	ret_val.picker_position.w = w
+	ret_val.picker_position.p = p
+	ret_val.picker_position.r = r
+	RETURN (ret_val)
+
+END parsePickingPosition
+
+ROUTINE parseMultiplePickingPositions(pipeFile : FILE)
+BEGIN
+    -- read file. call single parser at the first {
+    -- parser will return when it finds }
+    -- if next char is , then repeat
+    -- if next char is ] return an array of picking_points
+
+END parseMultiplePickingPositions

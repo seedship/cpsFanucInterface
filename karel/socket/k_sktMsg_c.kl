@@ -19,6 +19,7 @@ VAR
 	count : INTEGER
 
 %INCLUDE ../util/util
+%INCLUDE ../parsers/picking_position_parser
 
 ROUTINE connectServ(serverTag : STRING)
 BEGIN
@@ -72,114 +73,6 @@ BEGIN
 	CLOSE FILE pipeFile
 	RETURN (0)
 END requestData
-
-ROUTINE parseJsonFile(pipeFile : FILE) : picking_point
-VAR
-	status: INTEGER
-	count: INTEGER
-	read_str: STRING[100]
-	x : REAL
-	y : REAL
-	z : REAL
-	w : REAL
-	p : REAL
-	r : REAL
-	c : STRING[1]
-	c_1 : STRING[50]
-	key_length : INTEGER
-	string_value : STRING[20]
-	quote_count : INTEGER
-	searching : BOOLEAN
-	candidate : STRING[52]
-	reading : BOOLEAN
-	v : REAL
-	ret_val : picking_point
-BEGIN
-	BYTES_AHEAD(pipeFile, count, status)
-	checkError('Bytes Ahead 0', status)
-	searching = TRUE
-	quote_count = 0
-	candidate = ''
-	reading = FALSE
-	string_value = ''
-	c = ''
-	v = 0
-	key_length = 0
-	
-	WHILE count > 0 DO
-		READ pipeFile(c::1)
-		BYTES_AHEAD(pipeFile, count, status)
-		checkError('Bytes Ahead inside loop', status)
-
-		WHILE (c = '[') OR (c = '{') DO
-			READ pipeFile(c::1)
-			BYTES_AHEAD(pipeFile, count, status)
-		ENDWHILE
-
-		IF searching = TRUE THEN
-			IF ((((quote_count = 0) OR (quote_count=1)) AND (c = '"'))) THEN
-				candidate = candidate + c
-				quote_count = quote_count + 1
-			ENDIF
-			IF ((quote_count = 1) AND (c <> '"')) THEN
-				candidate = candidate + c
-				key_length = key_length + 1
-			ENDIF
-			IF quote_count = 2 THEN
-				searching = FALSE
-				c_1 = SUB_STR(candidate, 2, key_length)
-				quote_count = 0
-				key_length = 0
-			ENDIF
-		ELSE
-			IF (reading = TRUE) THEN
-				IF (c <> ' ') AND (c <> ',') AND (c <> '}') THEN
-					string_value = string_value + c
-				ELSE
-					CNV_STR_REAL(string_value, v)
-					string_value = ''
-					reading = FALSE
-				ENDIF
-			ENDIF
-			IF c = ':' THEN
-				reading = TRUE
-			ENDIF
-			IF (c = ',') OR (c = '}') THEN
-				searching = TRUE
-				reading = FALSE
-				IF  c_1 = 'x' THEN
-					x = v
-				ENDIF
-				IF  c_1 = 'y' THEN 
-					y = v
-				ENDIF
-				IF  c_1 = 'z' THEN 
-					z = v
-				ENDIF
-				IF c_1 = 'phi' THEN  
-					w = v
-				ENDIF
-				IF  c_1 = 'theta' THEN 
-					p = v
-				ENDIF
-				IF  c_1 = 'psi' THEN
-					r = v
-				ENDIF
-				candidate = ''
-			ENDIF
-		ENDIF
-	ENDWHILE
-	
-	-- initialize picking_point structure with parsed data
-	ret_val.picker_position.x = x
-	ret_val.picker_position.y = y
-	ret_val.picker_position.z = z
-	ret_val.picker_position.w = w
-	ret_val.picker_position.p = p
-	ret_val.picker_position.r = r
-	RETURN (ret_val)
-
-END parseJsonFile
    
 BEGIN
 	connectServ('C3:')
@@ -195,25 +88,7 @@ BEGIN
 	SET_FILE_ATR(pipeFile, ATR_PIPWAIT, WAIT_USED) -- force READS to wait
 	SET_FILE_ATR(pipeFile, ATR_TIMEOUT, (1*1000))  -- READs timeout after 1*1000ms
 	
-	--SET_FILE_POS(pipeFile, 400, STATUS)
-	--checkError('set pos', STATUS)
-
-	--  WHILE count > 0 DO
-	--  	IF count >= 40 THEN
-	--  		READ pipeFile(printStr::40)
-	--  		WRITE(printStr, CR)
-	--  	ELSE
-	-- 		READ pipeFile(printStr::count)
-	-- 		printStr = SUB_STR(printStr, 1, count)
-	-- 		WRITE(printStr, CR)
-	--  	ENDIF
-	
-	-- 	BYTES_AHEAD(pipeFile, count, STATUS)
-	--  	checkError('Bytes Ahead 1', STATUS)
-	
-	--  ENDWHILE
-	
-	fetched_picking_point = parseJsonFile(pipeFile)
+	fetched_picking_point = parsePickingPosition(pipeFile)
 	WRITE('fetched_picking_point ', fetched_picking_point.picker_position, CR)
 
 END k_sktMsg_c
