@@ -31,15 +31,15 @@ BEGIN
 	v = 0
 	key_length = 0
 	
-	WHILE count > 0 DO
+	WHILE ((count > 0) AND (c <> '}')) DO -- parser will return when it finds }
 		READ pipeFile(c::1)
 		BYTES_AHEAD(pipeFile, count, status)
 		checkError('Bytes Ahead inside loop', status)
 
-		WHILE (c = '[') OR (c = '{') DO
+		IF c = '{' THEN
 			READ pipeFile(c::1)
 			BYTES_AHEAD(pipeFile, count, status)
-		ENDWHILE
+		ENDIF
 
 		IF searching = TRUE THEN
 			IF ((((quote_count = 0) OR (quote_count=1)) AND (c = '"'))) THEN
@@ -94,7 +94,7 @@ BEGIN
 			ENDIF
 		ENDIF
 	ENDWHILE
-	
+
 	-- initialize picking_point structure with parsed data
 	ret_val.picker_position.x = x
 	ret_val.picker_position.y = y
@@ -107,10 +107,31 @@ BEGIN
 END parsePickingPosition
 
 ROUTINE parseMultiplePickingPositions(pipeFile : FILE)
+VAR
+	status: INTEGER
+	count: INTEGER
+	c : STRING[1]
+	picking_points: ARRAY[30] OF picking_point
+	array_index : INTEGER
+	parsed_picking_position: picking_point
 BEGIN
+	array_index = 1
+	c=''
     -- read file. call single parser at the first {
-    -- parser will return when it finds }
-    -- if next char is , then repeat
-    -- if next char is ] return an array of picking_points
+	BYTES_AHEAD(pipeFile, count, status)
+	checkError('Bytes Ahead 0', status)
+    -- parser will return when it finds }; if next char is , then repeat. if next char is ] return an array of picking_points
+    WHILE ((count > 0) AND (c <> ']')) DO
+		READ pipeFile(c::1)
+		BYTES_AHEAD(pipeFile, count, status)
+		IF ((c=',') OR (c='[')) THEN
+			READ pipeFile(c::1)
+			BYTES_AHEAD(pipeFile, count, status)
+			parsed_picking_position = parsePickingPosition(pipeFile)
+			picking_points[array_index] = parsed_picking_position
+			WRITE('array elements', picking_points[array_index].picker_position, CR)
+			array_index = array_index + 1	
+		ENDIF
+	ENDWHILE
 
 END parseMultiplePickingPositions

@@ -91,4 +91,6 @@ BEGIN
 	fetched_picking_point = parsePickingPosition(pipeFile)
 	WRITE('fetched_picking_point ', fetched_picking_point.picker_position, CR)
 
+	-- parseMultiplePickingPositions(pipeFile)
+
 END k_sktMsg_c
