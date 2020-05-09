@@ -1,0 +1,52 @@
+ROUTINE connectServ(serverTag : STRING)
+BEGIN
+	MSG_DISCO(serverTag, STATUS)
+	MSG_CONNECT(serverTag, STATUS)
+
+	checkError('Connecting to Server', STATUS)
+
+	-- Open File
+	OPEN FILE connFile('RW', serverTag)
+
+	STATUS = IO_STATUS(connFile)
+
+	checkError('Opening File.', STATUS)
+END connectServ
+
+ROUTINE requestData(file_path : STRING) : INTEGER
+VAR
+	nBytes : INTEGER
+	serverMsg : STRING[254]
+BEGIN
+	WRITE connFile('GET /robot_position/?format=json', CR, CR)
+	REPEAT
+		BYTES_AHEAD(connFile, nBytes, STATUS)           
+		IF STATUS <> 0 THEN
+			RETURN (-1)
+		ENDIF
+		DELAY 100
+	UNTIL nBytes > 0
+	
+	OPEN FILE pipeFile('RW', file_path)
+	STATUS = IO_STATUS(pipeFile)
+	checkError('Opening pipeFile', STATUS)
+
+	WHILE nBytes > 0 DO
+		READ connFile(serverMsg::nBytes)
+		STATUS = IO_STATUS(connFile)
+
+		checkError('I/O_Status (File)', STATUS)
+
+		--wrapPrint(serverMsg)
+		WRITE pipeFile(serverMsg)
+		
+		BYTES_AHEAD(connFile, nBytes, STATUS)           
+		IF STATUS <> 0 THEN
+			CLOSE FILE pipeFile
+			RETURN (-1)
+		ENDIF
+		
+	ENDWHILE
+	CLOSE FILE pipeFile
+	RETURN (0)
+END requestData

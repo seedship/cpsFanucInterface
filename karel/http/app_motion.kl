@@ -9,7 +9,7 @@ VAR
 	STATUS: INTEGER
 	prog_idx: INTEGER
 	
-	motion_ctrl: INTEGER
+	--motion_ctrl: INTEGER
 BEGIN
 	$GROUP[1].$UTOOL = $MNUTOOL[1,1] --uTool 1
 	$GROUP[1].$UFRAME = $MNUFRAME[1,1] --uFrame 1
@@ -18,10 +18,10 @@ BEGIN
 	IF (STATUS <> 0) THEN
 		WRITE response('{"result":"failed", "program":"appmotion", "reason":',STATUS,'}')
 	ELSE
-		motion_ctrl = 1 -- Semaphore to allow motion control
-		CLEAR_SEMA (motion_ctrl) -- makes sure semaphore is zero before using it.
+		--motion_ctrl = 1 -- Semaphore to allow motion control
+		--CLEAR_SEMA (motion_ctrl) -- makes sure semaphore is zero before using it.
 		RUN_TASK( 'motion', 1, FALSE, FALSE, 1 OR 2 OR 4, STATUS )
-		POST_SEMA (motion_ctrl) -- makes motion_ctrl available immediately
+		--POST_SEMA (motion_ctrl) -- makes motion_ctrl available immediately
 		IF (STATUS <> 0) THEN
 			WRITE response('{"result":"failed", "program":"appmotion", "reason":',STATUS,'}')
 		ELSE

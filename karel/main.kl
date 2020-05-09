@@ -1,0 +1,46 @@
+PROGRAM main
+
+%NOLOCKGROUP
+%NOBUSYLAMP
+
+TYPE
+	picking_point = STRUCTURE
+		picker_position: XYZWPR
+	ENDSTRUCTURE
+
+VAR
+	connFile : FILE
+	pipeFile : FILE
+	STATUS : INTEGER
+	fetched_picking_point: picking_point
+
+	-- only for debug printing the saved pipeFile
+	printStr : String[40]
+	count : INTEGER
+
+%INCLUDE console/print_utils
+%INCLUDE parsers/picking_position_parser
+%INCLUDE socket/socket_utils
+
+   
+BEGIN
+	connectServ('C3:')
+	STATUS  = requestData('PIP:read.dt')
+	checkError('requestData', STATUS)
+	CLOSE FILE connFile
+
+	-- debug printing the saved pipeFile
+	OPEN FILE pipeFile('RO', 'PIP:read.dt')
+	STATUS = IO_STATUS(pipeFile)
+	checkError('Open pipeFile', STATUS)
+	
+	SET_FILE_ATR(pipeFile, ATR_PIPWAIT, WAIT_USED) -- force READS to wait
+	SET_FILE_ATR(pipeFile, ATR_TIMEOUT, (1*1000))  -- READs timeout after 1*1000ms
+	
+	fetched_picking_point = parsePickingPosition(pipeFile)
+	WRITE('fetched_picking_point ', fetched_picking_point.picker_position, CR)
+
+	-- parseMultiplePickingPositions(pipeFile)
+	MSG_DISCO('C3:', STATUS)
+
+END main
