@@ -1,12 +1,10 @@
 PROGRAM main
 
 %NOLOCKGROUP
+%NOPAUSE=ERROR+COMMAND+TPENABLE
 %NOBUSYLAMP
 
-TYPE
-	picking_point = STRUCTURE
-		picker_position: XYZWPR
-	ENDSTRUCTURE
+%INCLUDE types
 
 VAR
 	connFile : FILE
@@ -14,14 +12,13 @@ VAR
 	STATUS : INTEGER
 	fetched_picking_point: picking_point
 
-	-- only for debug printing the saved pipeFile
-	printStr : String[40]
-	count : INTEGER
+	-- only for debug
+	cur_pos : XYZWPR
 
 %INCLUDE console/print_utils
 %INCLUDE parsers/picking_position_parser
 %INCLUDE socket/socket_utils
-
+%INCLUDE motion/motion_utils
    
 BEGIN
 	connectServ('C3:')
@@ -39,6 +36,17 @@ BEGIN
 	
 	fetched_picking_point = parsePickingPosition(pipeFile)
 	WRITE('fetched_picking_point ', fetched_picking_point.picker_position, CR)
+
+	STATUS = startMotionListener
+	checkError('Start Motion Listener', STATUS)
+
+	fetched_picking_point.picker_position.x = 500
+	updatePositionTarget(fetched_picking_point.picker_position)
+	
+	DELAY(5000)
+
+	STATUS = stopMotionListener
+	checkError('Stop Motion Listener', STATUS)
 
 	-- parseMultiplePickingPositions(pipeFile)
 	MSG_DISCO('C3:', STATUS)

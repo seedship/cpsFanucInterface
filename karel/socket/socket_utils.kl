@@ -43,7 +43,7 @@ BEGIN
 		BYTES_AHEAD(connFile, nBytes, STATUS)           
 		IF STATUS <> 0 THEN
 			CLOSE FILE pipeFile
-			RETURN (-1)
+			RETURN (STATUS)
 		ENDIF
 		
 	ENDWHILE

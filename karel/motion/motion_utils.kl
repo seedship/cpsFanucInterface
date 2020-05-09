@@ -1,0 +1,35 @@
+ROUTINE startMotionListener : INTEGER
+VAR
+	status : INTEGER
+BEGIN
+	$GROUP[1].$UTOOL = $MNUTOOL[1,1] --uTool 1
+	$GROUP[1].$UFRAME = $MNUFRAME[1,1] --uFrame 1
+	RUN_TASK( 'motion', 1, FALSE, TRUE, 1 OR 2 OR 4, status)
+	RETURN (status)
+END startMotionListener
+
+ROUTINE stopMotionListener : INTEGER
+VAR
+	status : INTEGER
+BEGIN
+	ABORT_TASK('motion', TRUE, TRUE, status)
+	RETURN (status)
+END stopMotionListener
+
+ROUTINE updatePositionTarget (target : XYZWPR)
+VAR
+	status : INTEGER
+BEGIN
+	-- If position is not set this way, and unintialized data exception will occur
+	cur_pos = CURPOS(0,0)
+	cur_pos.x = target.x
+	cur_pos.y = target.y
+	cur_pos.z = target.z
+	cur_pos.w = target.w
+	cur_pos.p = target.p
+	cur_pos.r = target.r
+	SET_POS_REG(41, cur_pos, STATUS)
+	checkError('Update Position Target', STATUS)
+	FLG[3] = TRUE
+	FLG[7] = TRUE
+END updatePositionTarget

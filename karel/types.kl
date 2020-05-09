@@ -1,0 +1,4 @@
+TYPE
+	picking_point = STRUCTURE
+		picker_position: XYZWPR
+	ENDSTRUCTURE
