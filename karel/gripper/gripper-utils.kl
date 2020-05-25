@@ -1,0 +1,13 @@
+ROUTINE openGripper
+BEGIN
+	RDO[8] = OFF
+	DELAY 15
+	RDO[7] = ON
+END openGripper
+
+ROUTINE closeGripper
+BEGIN
+	RDO[7] = OFF
+	DELAY 15
+	RDO[8] = ON
+END closeGripper

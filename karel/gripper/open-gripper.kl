@@ -1,0 +1,7 @@
+PROGRAM open_gripper
+
+%INCLUDE gripper-utils
+
+BEGIN
+	openGripper
+END open_gripper
