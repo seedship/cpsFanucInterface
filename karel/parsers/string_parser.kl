@@ -1,0 +1,52 @@
+ROUTINE parseStringOrNumber(pipeFile : FILE, number: BOOLEAN) : STRING[200]
+VAR
+status: INTEGER
+	count: INTEGER
+	c : STRING[1]
+	quote_count : INTEGER
+	candidate : STRING[200]
+    v : REAL
+BEGIN
+	BYTES_AHEAD(pipeFile, count, status)
+	checkError('Bytes Ahead 0', status)
+	quote_count = 0
+	candidate = ''
+	c = ''
+    v = 0
+	
+	WHILE ((count > 0) AND (c <> '}')) DO -- parser will return when it finds }
+		READ pipeFile(c::1)
+		BYTES_AHEAD(pipeFile, count, status)
+		checkError('Bytes Ahead inside loop', status)
+
+		IF c = '{' THEN
+			READ pipeFile(c::1)
+			BYTES_AHEAD(pipeFile, count, status)
+		ENDIF
+		
+        IF (((quote_count = 0) AND (c = '"'))) THEN
+            quote_count = quote_count + 1
+        ELSE
+            IF ((quote_count = 1) AND (c <> '"')) THEN
+                candidate = candidate + c
+            ENDIF
+        ELSE
+            IF ((quote_count = 1) AND (c = '"')) THEN
+                candidate = candidate + c
+            ENDIF
+        ELSE
+            IF quote_count = 2 THEN
+                count = 0
+            ENDIF
+        ENDIF
+	ENDWHILE
+
+    -- if we are parsing a number, we go from string to real and we return the result
+    IF number THEN
+        CNV_STR_REAL(candidate, v)
+        return(v)
+    ENDIF   
+
+	RETURN (candidate)
+    
+END parseString
