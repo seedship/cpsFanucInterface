@@ -24,14 +24,14 @@ BEGIN
 			BYTES_AHEAD(pipeFile, count, status)
 		ENDIF
 		
-        IF (((quote_count = 0) AND (c = '"'))) THEN
+        IF ((((quote_count = 0) AND (c = '"')) OR (number))) THEN
             quote_count = quote_count + 1
         ELSE
             IF ((quote_count = 1) AND (c <> '"')) THEN
                 candidate = candidate + c
             ENDIF
         ELSE
-            IF ((quote_count = 1) AND (c = '"')) THEN
+            IF ((quote_count = 1) AND ((c = '"') OR (c = ',')) THEN
                 candidate = candidate + c
             ENDIF
         ELSE

@@ -1,4 +1,4 @@
-ROUTINE parsePickingPosition(pipeFile : FILE) : picking_point
+ROUTINE parsePosition(pipeFile : FILE) : position
 VAR
 	status: INTEGER
 	count: INTEGER
@@ -18,7 +18,7 @@ VAR
 	candidate : STRING[52]
 	reading : BOOLEAN
 	v : REAL
-	ret_val : picking_point
+	ret_val : position
 BEGIN
 	BYTES_AHEAD(pipeFile, count, status)
 	checkError('Bytes Ahead 0', status)
@@ -104,9 +104,9 @@ BEGIN
 	ret_val.picker_position.r = r
 	RETURN (ret_val)
 
-END parsePickingPosition
+END parsePosition
 
-ROUTINE parseMultiplePickingPositions(pipeFile : FILE)
+ROUTINE parseMultiplePositions(pipeFile : FILE)
 VAR
 	status: INTEGER
 	count: INTEGER
@@ -127,11 +127,11 @@ BEGIN
 		IF ((c=',') OR (c='[')) THEN
 			READ pipeFile(c::1)
 			BYTES_AHEAD(pipeFile, count, status)
-			parsed_picking_position = parsePickingPosition(pipeFile)
+			parsed_picking_position = parsePosition(pipeFile)
 			picking_points[array_index] = parsed_picking_position
 			WRITE('array elements', picking_points[array_index].picker_position, CR)
 			array_index = array_index + 1	
 		ENDIF
 	ENDWHILE
 
-END parseMultiplePickingPositions
+END parseMultiplePositions

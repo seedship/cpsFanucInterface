@@ -1,0 +1,87 @@
+ROUTINE parseDigitalTwin(pipeFile : FILE)
+-- Example of json to parse:
+-- [{"id":1,"picking_points":[{"x":2.0,"y":3.0,"z":4.0,"u":-0.0,"v":0.0,"n":-0.0},{"x":6.0,"y":7.0,"z":8.0,"u":1.308996938995747,"v":1.5707963267948966,"n":0.0}],
+-- "last_update":"2020-05-29T08:29:37.092123Z","age":0,"last_known_position":{"id":4,"x":1.0,"y":1.0,"z":1.0,"u":0.0,"v":0.0,"n":0.0},
+-- "item_name":"Test name"}]
+
+%INCLUDE parsers/position_parser
+%INCLUDE parsers/string_parser
+
+VAR
+	status: INTEGER
+	count: INTEGER
+	c : STRING[1]
+	picking_points: ARRAY[30] OF picking_point
+    parsed_id = INTEGER
+	parsed_picking_positions: ARRAY[30] OF position
+    parsed_last_known_position: position
+    parsed_class: STRING
+    key: STRING[10]
+    parsing_key: BOOLEAN
+    key_found: BOOLEAN
+    
+BEGIN
+	c=''
+    key = ''
+    reading_key = FALSE
+    key = ''
+    key_found = FALSE
+    -- read file. call single parser at the first {
+	BYTES_AHEAD(pipeFile, count, status)
+	checkError('Bytes Ahead 0', status)
+    -- parser will return when it finds }; if next char is , then repeat. if next char is ] return an array of picking_points
+    WHILE ((count > 0) AND (c <> ']')) DO
+        --  if we find " and reading_key is false, it means we found quotes before the key starts. Thus we start reading
+        IF ((c = '"') AND (reading_key = FALSE)) THEN
+            reading_key = TRUE
+        ENDIF
+
+        --  if we find " and reading_key is true, it means we found quotes after the key end. Thus we stop reading and we have our key
+        IF ((c = '"') AND (reading_key = TRUE)) THEN
+            reading_key = FALSE
+            key_found = FALSE
+        ENDIF
+
+        -- we are reading our key: we add the new character to the key string
+        IF (reading_key)THEN 
+            READ pipeFile(c::1)
+            BYTES_AHEAD(pipeFile, count, status)
+            key = key + c
+        ENDIF
+
+        -- we just read a new character since we are not in the key business described above
+        IF ((c <> '"') AND (reading_key = FALSE)) THEN
+            READ pipeFile(c::1)
+            BYTES_AHEAD(pipeFile, count, status)
+        ENDIF
+
+        -- when key_found is TRUE, it meand we are ready to parse
+        IF (key_found) THEN
+            -- for saftey: we don't want to start parsing from the column diving hey and value
+            IF (c = ':') THEN
+                READ pipeFile(c::1)
+                BYTES_AHEAD(pipeFile, count, status)
+            ENDIF
+
+            IF key = 'id' THEN 
+                parsed_id = parseStringOrNumber(pipeFile, TRUE)
+            ENDIF
+
+            IF key = 'picking_points' THEN 
+                parsed_picking_positions = parseMultiplePositions(pipeFile)
+            ENDIF
+
+            IF key = 'last_known_position' THEN 
+                parsed_last_known_position = parsePosition(pipeFile)
+            ENDIF
+
+            IF key = 'item_name' THEN 
+                parsed_class = parseStringOrNumber(pipeFile, FALSE)
+            ENDIF
+
+            key = ''
+            key_found = FALSE
+        ENDIF
+	ENDWHILE
+
+END parseDigitalTwin

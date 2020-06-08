@@ -1,4 +1,4 @@
 TYPE
-	picking_point = STRUCTURE
-		picker_position: XYZWPR
+	position = STRUCTURE
+		coordinates: XYZWPR
 	ENDSTRUCTURE

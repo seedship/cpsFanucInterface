@@ -10,7 +10,7 @@ VAR
 	connFile : FILE
 	pipeFile : FILE
 	STATUS : INTEGER
-	fetched_picking_point: picking_point
+	fetched_picking_point: position
 
 	-- only for debug
 	cur_pos : XYZWPR
@@ -35,13 +35,13 @@ BEGIN
 	SET_FILE_ATR(pipeFile, ATR_TIMEOUT, (1*1000))  -- READs timeout after 1*1000ms
 	
 	fetched_picking_point = parsePickingPosition(pipeFile)
-	WRITE('fetched_picking_point ', fetched_picking_point.picker_position, CR)
+	WRITE('fetched_picking_point ', fetched_picking_point.coordinates, CR)
 
 	STATUS = startMotionListener
 	checkError('Start Motion Listener', STATUS)
 
-	fetched_picking_point.picker_position.x = 500
-	updatePositionTarget(fetched_picking_point.picker_position)
+	fetched_picking_point.coordinates.x = 500
+	updatePositionTarget(fetched_picking_point.coordinates)
 	
 	DELAY(5000)
 
