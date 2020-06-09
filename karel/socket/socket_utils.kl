@@ -1,3 +1,11 @@
+ROUTINE realToStr(input: REAL) : STRING
+VAR
+    buf : STRING[20]
+BEGIN
+    CNV_REAL_STR(input,8,8, buf)
+    return (SUB_STR(buf, 2, 254))
+END realToStr
+
 ROUTINE connectServ(serverTag : STRING)
 BEGIN
 	MSG_DISCO(serverTag, STATUS)
@@ -17,8 +25,18 @@ ROUTINE requestData(file_path : STRING) : INTEGER
 VAR
 	nBytes : INTEGER
 	serverMsg : STRING[254]
+	currentPos: XYZWPREXT
 BEGIN
-	WRITE connFile('GET /robot_position/?format=json', CR, CR)
+	$GROUP[1].$UTOOL = $MNUTOOL[1,1] --uTool 1
+	$GROUP[1].$UFRAME = $MNUFRAME[1,1] --uFrame 1
+	currentPos = CURPOS(0,0)
+	WRITE connFile('GET /robot_position/?format=json')
+	WRITE connFile('&x=', realToStr(currentPos.x))
+	WRITE connFile('&y=', realToStr(currentPos.y))
+	WRITE connFile('&z=', realToStr(currentPos.z))
+	WRITE connFile('&w=', realToStr(currentPos.w))
+	WRITE connFile('&p=', realToStr(currentPos.p))
+	WRITE connFile('&r=', realToStr(currentPos.r), CR, CR)
 	REPEAT
 		BYTES_AHEAD(connFile, nBytes, STATUS)           
 		IF STATUS <> 0 THEN
