@@ -34,7 +34,7 @@ BEGIN
 	SET_FILE_ATR(pipeFile, ATR_PIPWAIT, WAIT_USED) -- force READS to wait
 	SET_FILE_ATR(pipeFile, ATR_TIMEOUT, (1*1000))  -- READs timeout after 1*1000ms
 	
-	fetched_picking_point = parsePickingPosition(pipeFile)
+	fetched_picking_point = parsePosition(pipeFile)
 	WRITE('fetched_picking_point ', fetched_picking_point.coordinates, CR)
 
 	STATUS = startMotionListener

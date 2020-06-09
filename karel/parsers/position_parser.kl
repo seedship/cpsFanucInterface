@@ -129,7 +129,7 @@ BEGIN
 			BYTES_AHEAD(pipeFile, count, status)
 			parsed_picking_position = parsePosition(pipeFile)
 			picking_points[array_index] = parsed_picking_position
-			WRITE('array elements', picking_points[array_index].picker_position, CR)
+			WRITE('array elements', picking_points[array_index].coordinates, CR)
 			array_index = array_index + 1	
 		ENDIF
 	ENDWHILE
