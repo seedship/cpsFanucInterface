@@ -10,13 +10,13 @@ VAR
 	connFile : FILE
 	pipeFile : FILE
 	STATUS : INTEGER
-	fetched_picking_point: position
+	fetched_picking_point: object_position
 
 	-- only for debug
 	cur_pos : XYZWPR
 
 %INCLUDE console/print_utils
-%INCLUDE parsers/picking_position_parser
+%INCLUDE parsers/position_parser
 %INCLUDE socket/socket_utils
 %INCLUDE motion/motion_utils
    

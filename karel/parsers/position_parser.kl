@@ -1,4 +1,4 @@
-ROUTINE parsePosition(pipeFile : FILE) : position
+ROUTINE parsePosition(pipeFile : FILE) : object_position
 VAR
 	status: INTEGER
 	count: INTEGER
@@ -18,7 +18,7 @@ VAR
 	candidate : STRING[52]
 	reading : BOOLEAN
 	v : REAL
-	ret_val : position
+	ret_val : object_position
 BEGIN
 	BYTES_AHEAD(pipeFile, count, status)
 	checkError('Bytes Ahead 0', status)
@@ -111,9 +111,9 @@ VAR
 	status: INTEGER
 	count: INTEGER
 	c : STRING[1]
-	picking_points: ARRAY[30] OF position
+	picking_points: ARRAY[30] OF object_position
 	array_index : INTEGER
-	parsed_picking_position: position
+	parsed_picking_position: object_position
 BEGIN
 	array_index = 1
 	c=''

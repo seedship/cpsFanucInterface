@@ -1,4 +1,4 @@
 TYPE
-	position = STRUCTURE
+	object_position = STRUCTURE
 		coordinates: XYZWPR
 	ENDSTRUCTURE

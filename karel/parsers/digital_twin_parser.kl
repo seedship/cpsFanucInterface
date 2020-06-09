@@ -13,8 +13,8 @@ VAR
 	c : STRING[1]
 	picking_points: ARRAY[30] OF picking_point
     parsed_id = INTEGER
-	parsed_picking_positions: ARRAY[30] OF position
-    parsed_last_known_position: position
+	parsed_picking_positions: ARRAY[30] OF object_position
+    parsed_last_known_position: object_position
     parsed_class: STRING
     key: STRING[10]
     parsing_key: BOOLEAN
