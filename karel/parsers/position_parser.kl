@@ -96,12 +96,12 @@ BEGIN
 	ENDWHILE
 
 	-- initialize picking_point structure with parsed data
-	ret_val.picker_position.x = x
-	ret_val.picker_position.y = y
-	ret_val.picker_position.z = z
-	ret_val.picker_position.w = w
-	ret_val.picker_position.p = p
-	ret_val.picker_position.r = r
+	ret_val.coordinates.x = x
+	ret_val.coordinates.y = y
+	ret_val.coordinates.z = z
+	ret_val.coordinates.w = w
+	ret_val.coordinates.p = p
+	ret_val.coordinates.r = r
 	RETURN (ret_val)
 
 END parsePosition
@@ -111,9 +111,9 @@ VAR
 	status: INTEGER
 	count: INTEGER
 	c : STRING[1]
-	picking_points: ARRAY[30] OF picking_point
+	picking_points: ARRAY[30] OF position
 	array_index : INTEGER
-	parsed_picking_position: picking_point
+	parsed_picking_position: position
 BEGIN
 	array_index = 1
 	c=''
