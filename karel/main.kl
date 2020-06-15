@@ -40,7 +40,7 @@ BEGIN
 	STATUS = startMotionListener
 	checkError('Start Motion Listener', STATUS)
 
-	fetched_picking_point.coordinates.x = 500
+	--fetched_picking_point.coordinates.x = 500
 	updatePositionTarget(fetched_picking_point.coordinates)
 	
 	DELAY(5000)
