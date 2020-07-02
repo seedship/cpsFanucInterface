@@ -20,7 +20,7 @@ ROUTINE updatePositionTarget (target : XYZWPR)
 VAR
 	status : INTEGER
 BEGIN
-	-- If position is not set this way, and unintialized data exception will occur
+	-- Position is set this way so NUT/FUT config is copied over
 	cur_pos = CURPOS(0,0)
 	cur_pos.x = target.x
 	cur_pos.y = target.y

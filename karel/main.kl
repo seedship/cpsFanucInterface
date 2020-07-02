@@ -19,6 +19,7 @@ VAR
 %INCLUDE parsers/position_parser
 %INCLUDE socket/socket_utils
 %INCLUDE motion/motion_utils
+%INCLUDE gripper/gripper-utils
    
 BEGIN
 	connectServ('C3:')
@@ -44,7 +45,20 @@ BEGIN
 	updatePositionTarget(fetched_picking_point.coordinates)
 	
 	DELAY(5000)
-
+	openGripper
+	DELAY(1000)
+	closeGripper
+	
+	
+	fetched_picking_point.coordinates.x = 453
+	fetched_picking_point.coordinates.y = -2
+	fetched_picking_point.coordinates.z = 206
+	fetched_picking_point.coordinates.w = 180
+	fetched_picking_point.coordinates.p = 2
+	fetched_picking_point.coordinates.r = 0
+	updatePositionTarget(fetched_picking_point.coordinates)
+	DELAY(5000)
+	
 	STATUS = stopMotionListener
 	checkError('Stop Motion Listener', STATUS)
 
