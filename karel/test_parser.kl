@@ -1,0 +1,48 @@
+PROGRAM test_parser
+%COMMENT = 'Parse XML to struct(s)'
+
+%INCLUDE console/print_utils
+
+%ENVIRONMENT xml -- TODO check what this does
+%include klerxmlf -- TODO check what this does
+
+--<test_struct int_val="10" float_val="-2.7" string_val="abc"/>
+TYPE
+	test_struct = STRUCTURE
+	int_val: INTEGER
+	float_val: REAL
+	string_val: STRING[32] --max is 254
+	ENDSTRUCTURE
+
+
+VAR
+	strct: test_struct
+	tag_id: INTEGER -- used to switch over scan result, bound to specific string ID
+	tag_string: STRING[32] -- returned by scan
+	func_code: INTEGER -- specific return status of scan
+
+
+	xml_file: FILE -- file handle
+
+	status: INTEGER -- variable to store various exit statusses
+
+
+BEGIN
+SET_FILE_ATR (xml_file, ATR_XML) -- set to be usable by xml functions
+CLR_IO_STAT(xml_file) -- TODO check what this does
+WRITE('BEGIN', CR)
+OPEN FILE xml_file ('RO', 'MC:basic.xml') -- read only
+status = IO_STATUS(xml_file)
+tag_id = 3
+
+checkError('Could not open file', status)
+
+-- register tag to be detected by scan
+XML_ADDTAG(xml_file, 'test_struct', 32, FALSE, tag_id, status)
+
+-- scan once
+XML_SCAN(xml_file, tag_string, tag_id, func_code, status)
+
+WRITE('END', CR)
+
+END test_parser
