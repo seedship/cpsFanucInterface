@@ -1,0 +1,133 @@
+PROGRAM xmlparse
+%COMMENT = 'XML Parse'
+%NOPAUSESHFT
+%NOPAUSE = ERROR + TPENABLE + COMMAND
+%NOABORT = ERROR + COMMAND
+%NOLOCKGROUP
+%NOBUSYLAMP
+%ENVIRONMENT xml
+%INCLUDE klerxmlf
+CONST
+MYXML_CONST = 3
+TYPE
+xmlstrct_t = STRUCTURE
+first: INTEGER
+second: REAL
+third: BOOLEAN
+fourth: STRING[20]
+ENDSTRUCTURE
+VAR 
+xml_name: STRING[20]
+tag_name: STRING[32]
+text: ARRAY[32] OF STRING[128]
+attrnames: ARRAY[32] OF STRING[32]
+attrvalues : ARRAY[32] OF STRING[64]
+xml_file: FILE
+status: INTEGER
+xmlstrct:xmlstrct_t
+tag_ident: INTEGER
+func_code: INTEGER
+text_idx: INTEGER
+numattr: INTEGER
+textdone: BOOLEAN
+done: BOOLEAN
+console: FILE
+startdata: BOOLEAN
+----------------------------------------------------------------------
+--
+--
+-- There are two types of XML file constructs. In one the end tag is
+--
+-- For the case that the end tag is separate from the start tag
+--Scanned (Rev D) xmlstrct_t
+--Start Tag processing...
+--Scanned (Rev D) xmlstrct_t
+--End Tag
+--Processed at start tag...
+--Scanned (Rev D) xmlstrct_t
+--
+--For the case where the end tag and start tag are together (Figure 1.2)
+--Scanned (Rev D) xmlstrct_t
+--End Tag
+--End Tag processing...
+--Scanned (Rev D) xmlstrct_t
+BEGIN
+SET_FILE_ATR(console, ATR_IA, 0) -- ATR_IA is defined in flbt.ke
+OPEN FILE console ('RW', 'CONS:')
+IF UNINIT(xml_name) THEN
+xml_name = 'mc:basic.xml'
+ENDIF
+SET_FILE_ATR (xml_file, ATR_XML)
+ -- XML
+CLR_IO_STAT(xml_file)
+OPEN FILE xml_file ('RO', xml_name)
+ -- Open does new operation
+status = IO_STATUS(xml_file)
+IF status <> 0 THEN
+POST_ERR(status, '', 0, 0)
+ABORT
+ENDIF
+XML_ADDTAG(xml_file, 'xmlstrct_t', 32, FALSE, MYXML_CONST, status)
+textdone = TRUE
+done = FALSE
+startdata=FALSE
+WHILE (done = FALSE) DO
+XML_SCAN(xml_file, tag_name, tag_ident, func_code, status)
+IF(status = 0) THEN
+done= TRUE
+ENDIF
+WRITE console ('Scanned (Rev D) ', tag_name,' ', tag_ident, ' ',
+func_code, ' ',STATUS,' ', CR)
+IF (status = XML_FUNCTION) THEN
+status = 0
+SELECT tag_ident OF
+CASE (MYXML_CONST) :
+SELECT func_code OF
+CASE (XML_START) :
+WRITE console ('Start Tag processing...', CR)
+text_idx = 1
+XML_SETVAR(xml_file, 'basic', 'xmlstrct', status)
+-- Already looked at the attribtues get the text
+XML_GETDATA(xml_file, numattr, attrnames, attrvalues,
+text[text_idx], textdone, status)
+startdata = TRUE
+CASE (XML_STEND) :
+-- This tag is never returned
+WRITE console ('StEnd Tag', CR)
+CASE (XML_END) :
+WRITE console ('End Tag', CR)
+IF(startdata = TRUE) THEN
+startdata=FALSE
+WRITE console ('Processed at start tag...', CR)
+ELSE
+WRITE console ('End Tag processing...', CR)
+text_idx = 1
+XML_SETVAR(xml_file, 'basic', 'xmlstrct', status)
+-- Already looked at the attribtues get the text
+XML_GETDATA(xml_file, numattr, attrnames, attrvalues,
+text[text_idx], textdone, status)
+ENDIF
+CASE (XML_TXCONT) :
+-- Usually the user will do one or the other but not both of
+text_idx = text_idx + 1
+XML_GETDATA(xml_file, numattr, attrnames, attrvalues,
+text[text_idx], textdone, status)
+ELSE:
+ENDSELECT
+ELSE:
+ENDSELECT
+ELSE
+IF(status <> XML_SCANLIM) THEN
+POST_ERR(status, '', 0, 0)
+done = TRUE
+ENDIF
+ENDIF -- Good status from xml_parse
+ENDWHILE
+-- This is not required but allows the user to dynamically remove
+XML_REMTAG(xml_file, 'xmlstrct_t', status)
+CLOSE FILE xml_file
+status = IO_STATUS(xml_file)
+IF status <> 0 THEN
+POST_ERR(status, '', 0, 0)
+ENDIF
+END xmlparse

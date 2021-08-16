@@ -1,22 +1,24 @@
 PROGRAM test_parser
 %COMMENT = 'Parse XML to struct(s)'
 
-%INCLUDE console/print_utils
-
 %ENVIRONMENT xml -- TODO check what this does
-%include klerxmlf -- TODO check what this does
+
+%INCLUDE klerxmlf -- TODO check what this does
 
 --<test_struct int_val="10" float_val="-2.7" string_val="abc"/>
+CONST
+	my_tag_id = 3
+
 TYPE
-	test_struct = STRUCTURE
-	int_val: INTEGER
-	float_val: REAL
-	string_val: STRING[32] --max is 254
+	teststruct = STRUCTURE
+	intval: INTEGER
+	floatval: REAL
+	stringval: STRING[32] --max is 254
 	ENDSTRUCTURE
 
 
 VAR
-	strct: test_struct
+	strct: teststruct
 	tag_id: INTEGER -- used to switch over scan result, bound to specific string ID
 	tag_string: STRING[32] -- returned by scan
 	func_code: INTEGER -- specific return status of scan
@@ -25,7 +27,9 @@ VAR
 	xml_file: FILE -- file handle
 
 	status: INTEGER -- variable to store various exit statusses
+	eof: BOOLEAN
 
+%INCLUDE console/print_utils
 
 BEGIN
 SET_FILE_ATR (xml_file, ATR_XML) -- set to be usable by xml functions
@@ -33,15 +37,36 @@ CLR_IO_STAT(xml_file) -- TODO check what this does
 WRITE('BEGIN', CR)
 OPEN FILE xml_file ('RO', 'MC:basic.xml') -- read only
 status = IO_STATUS(xml_file)
-tag_id = 3
 
 checkError('Could not open file', status)
 
 -- register tag to be detected by scan
-XML_ADDTAG(xml_file, 'test_struct', 32, FALSE, tag_id, status)
+XML_ADDTAG(xml_file, 'teststruct', 32, FALSE,my_tag_id, status)
+	WRITE('added tag',  CR)
 
 -- scan once
 XML_SCAN(xml_file, tag_string, tag_id, func_code, status)
+	WRITE('scanning',  CR)
+
+-- end of file reached
+IF (status = 0) THEN
+	eof = TRUE
+	WRITE('eof', CR)
+ENDIF
+
+-- scanned a tag
+		SELECT func_code OF
+			CASE (XML_START): -- found start of tag
+			WRITE('processing tag', CR)
+			XML_SETVAR(xml_file, 'noIdea', 'strct', status)
+			WRITE('int_val:', strct.intval)
+			WRITE('float_val:', strct.floatval)
+			WRITE('string_val:', strct.stringval)
+			CASE (XML_STEND): -- scanned tag is never terminated 
+			CASE (XML_END): -- found closing tag OR END OF self-contained tag
+			WRITE('end of tag', CR)
+		ELSE:
+		ENDSELECT
 
 WRITE('END', CR)
 
