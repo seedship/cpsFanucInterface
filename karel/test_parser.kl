@@ -46,3 +46,5 @@ XML_SCAN(xml_file, tag_string, tag_id, func_code, status)
 WRITE('END', CR)
 
 END test_parser
+
+
