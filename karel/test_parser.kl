@@ -10,43 +10,52 @@ CONST
 	my_tag_id = 3
 
 TYPE
-	teststruct = STRUCTURE
-	intval: INTEGER
-	floatval: REAL
-	stringval: STRING[32] --max is 254
+	test_struct = STRUCTURE
+	int_val: INTEGER
+	float_val: REAL
+	string_val: STRING[32] --max is 254
 	ENDSTRUCTURE
 
 
 VAR
-	strct: teststruct
+	strct: test_struct
 	tag_id: INTEGER -- used to switch over scan result, bound to specific string ID
 	tag_string: STRING[32] -- returned by scan
 	func_code: INTEGER -- specific return status of scan
+	
+	x: STRING[32]
 
 
 	xml_file: FILE -- file handle
 
 	status: INTEGER -- variable to store various exit statusses
 	eof: BOOLEAN
+	done: BOOLEAN
 
 %INCLUDE console/print_utils
 
 BEGIN
+done = FALSE
 SET_FILE_ATR (xml_file, ATR_XML) -- set to be usable by xml functions
 CLR_IO_STAT(xml_file) -- TODO check what this does
 WRITE('BEGIN', CR)
 OPEN FILE xml_file ('RO', 'MC:basic.xml') -- read only
 status = IO_STATUS(xml_file)
 
-checkError('Could not open file', status)
+--checkError('Could not open file', status)
 
 -- register tag to be detected by scan
-XML_ADDTAG(xml_file, 'teststruct', 32, FALSE,my_tag_id, status)
-	WRITE('added tag',  CR)
+XML_ADDTAG(xml_file, 'test_struct', 32, FALSE,my_tag_id, status)
+WRITE('added tag',  CR)
+	
+--READ xml_file(x::32)
+--WRITE(x, CR)
 
 -- scan once
 XML_SCAN(xml_file, tag_string, tag_id, func_code, status)
 	WRITE('scanning',  CR)
+
+--checkError('Could not scan', status)
 
 -- end of file reached
 IF (status = 0) THEN
@@ -54,19 +63,28 @@ IF (status = 0) THEN
 	WRITE('eof', CR)
 ENDIF
 
+WHILE(done = FALSE) DO
+
+IF (status = XML_FUNCTION) THEN -- succesfully scanned tag
+
 -- scanned a tag
 		SELECT func_code OF
 			CASE (XML_START): -- found start of tag
 			WRITE('processing tag', CR)
 			XML_SETVAR(xml_file, 'noIdea', 'strct', status)
-			WRITE('int_val:', strct.intval)
-			WRITE('float_val:', strct.floatval)
-			WRITE('string_val:', strct.stringval)
-			CASE (XML_STEND): -- scanned tag is never terminated 
+			WRITE('int_val:', strct.int_val)
+			WRITE('float_val:', strct.float_val)
+			WRITE('string_val:', strct.string_val)
+			done = TRUE
+			CASE (XML_STEND): -- scanned tag is never terminated
+			WRITE('XML_STEND')
+			done = TRUE 
 			CASE (XML_END): -- found closing tag OR END OF self-contained tag
 			WRITE('end of tag', CR)
 		ELSE:
 		ENDSELECT
+ENDIF
+ENDWHILE
 
 WRITE('END', CR)
 

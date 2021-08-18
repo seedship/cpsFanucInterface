@@ -55,7 +55,7 @@ BEGIN
 SET_FILE_ATR(console, ATR_IA, 0) -- ATR_IA is defined in flbt.ke
 OPEN FILE console ('RW', 'CONS:')
 IF UNINIT(xml_name) THEN
-xml_name = 'mc:basic.xml'
+xml_name = 'mc:sample.xml'
 ENDIF
 SET_FILE_ATR (xml_file, ATR_XML)
  -- XML
@@ -63,6 +63,7 @@ CLR_IO_STAT(xml_file)
 OPEN FILE xml_file ('RO', xml_name)
  -- Open does new operation
 status = IO_STATUS(xml_file)
+WRITE('IO STAUS', status, CR)
 IF status <> 0 THEN
 POST_ERR(status, '', 0, 0)
 ABORT
@@ -76,8 +77,9 @@ XML_SCAN(xml_file, tag_name, tag_ident, func_code, status)
 IF(status = 0) THEN
 done= TRUE
 ENDIF
-WRITE console ('Scanned (Rev D) ', tag_name,' ', tag_ident, ' ',
-func_code, ' ',STATUS,' ', CR)
+WRITE(status, CR)
+WRITE('tag name', tag_name, CR)
+WRITE console ('Scanned (Rev D) ', tag_name,' ', tag_ident, ' ', func_code, ' ',status,' ', CR)
 IF (status = XML_FUNCTION) THEN
 status = 0
 SELECT tag_ident OF
