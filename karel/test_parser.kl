@@ -42,8 +42,6 @@ WRITE('BEGIN', CR)
 OPEN FILE xml_file ('RO', 'MC:basic.xml') -- read only
 status = IO_STATUS(xml_file)
 
---checkError('Could not open file', status)
-
 -- register tag to be detected by scan
 XML_ADDTAG(xml_file, 'test_struct', 32, FALSE,my_tag_id, status)
 WRITE('added tag',  CR)
@@ -53,38 +51,58 @@ WRITE('added tag',  CR)
 
 -- scan once
 XML_SCAN(xml_file, tag_string, tag_id, func_code, status)
-	WRITE('scanning',  CR)
-
---checkError('Could not scan', status)
-
--- end of file reached
-IF (status = 0) THEN
+IF (status = 0) THEN -- end of file reached
 	eof = TRUE
 	WRITE('eof', CR)
 ENDIF
 
-WHILE(done = FALSE) DO
 
 IF (status = XML_FUNCTION) THEN -- succesfully scanned tag
-
--- scanned a tag
-		SELECT func_code OF
-			CASE (XML_START): -- found start of tag
-			WRITE('processing tag', CR)
-			XML_SETVAR(xml_file, 'noIdea', 'strct', status)
-			WRITE('int_val:', strct.int_val)
-			WRITE('float_val:', strct.float_val)
-			WRITE('string_val:', strct.string_val)
-			done = TRUE
-			CASE (XML_STEND): -- scanned tag is never terminated
-			WRITE('XML_STEND')
-			done = TRUE 
-			CASE (XML_END): -- found closing tag OR END OF self-contained tag
-			WRITE('end of tag', CR)
-		ELSE:
-		ENDSELECT
+	SELECT func_code OF
+		CASE (XML_START): -- found start of tag
+		WRITE('start of tag', CR)
+		XML_SETVAR(xml_file, 'test_parser', 'strct', status)
+		WRITE('int_val:', strct.int_val, CR)
+		WRITE('float_val:', strct.float_val, CR)
+		WRITE('string_val:', strct.string_val, CR)
+		CASE (XML_STEND): -- scanned tag is never terminated
+		WRITE('XML_STEND')
+		CASE (XML_END): -- found closing tag OR END OF self-contained tag
+		WRITE('end of tag', CR)
+		XML_SETVAR(xml_file, 'test_parser', 'strct', status)
+		WRITE('int_val:', strct.int_val, CR)
+		WRITE('float_val:', strct.float_val, CR)
+		WRITE('string_val:', strct.string_val, CR)
+	ENDSELECT
+ELSE
+	done = TRUE
+	WRITE('err status', status)	
 ENDIF
-ENDWHILE
+
+XML_SCAN(xml_file, tag_string, tag_id, func_code, status)
+IF (status = 0) THEN -- end of file reached
+	eof = TRUE
+	WRITE('eof', CR)
+ENDIF
+WRITE('scanning',  CR)
+IF (status = XML_FUNCTION) THEN -- succesfully scanned tag
+	SELECT func_code OF
+		CASE (XML_START): -- found start of tag
+		WRITE('start of tag', CR)
+		CASE (XML_STEND): -- scanned tag is never terminated
+		WRITE('XML_STEND')
+		CASE (XML_END): -- found closing tag OR END OF self-contained tag
+		WRITE('end of tag', CR)
+	ENDSELECT
+ELSE
+	WRITE('err status', status)	
+ENDIF
+
+XML_SCAN(xml_file, tag_string, tag_id, func_code, status)
+IF (status = 0) THEN -- end of file reached
+	eof = TRUE
+	WRITE('eof', CR)
+ENDIF
 
 WRITE('END', CR)
 
