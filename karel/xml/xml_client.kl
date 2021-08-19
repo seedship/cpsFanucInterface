@@ -1,14 +1,14 @@
 PROGRAM xml_client
 
-
-%INCLUDE socket_utils
-
 VAR
 	connFile: FILE
 	pipeFile: FILE
 	STATUS: INTEGER
 	serverMsg: STRING[254]
 	nBytes: INTEGER
+
+%INCLUDE ../console/print_utils
+%INCLUDE ../socket/socket_utils
 
 BEGIN
 	connectServ('C3:') --tag configured by init script
@@ -19,7 +19,7 @@ BEGIN
 	REPEAT
 		BYTES_AHEAD(connFile, nBytes, STATUS)           
 		IF STATUS <> 0 THEN
-			RETURN (-1)
+			ABORT
 		ENDIF
 		DELAY 100 --check every 100ms for socket msg
 	UNTIL nBytes > 0
