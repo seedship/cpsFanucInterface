@@ -55,7 +55,6 @@ IF (status = 0) THEN -- end of file reached
 	WRITE('eof', CR)
 ENDIF
 
-
 IF (status = XML_FUNCTION) THEN -- succesfully scanned tag
 	SELECT func_code OF
 		CASE (XML_START): -- found start of tag
