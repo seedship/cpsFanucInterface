@@ -1,20 +1,10 @@
-PROGRAM test_varlist
-%COMMENT = 'Parse list of struct tags'
---<test_struct int_val="10" float_val="-2.7" string_val="abc"/>
+-- %COMMENT = 'Parse list of struct tags'
 
-%ENVIRONMENT xml
-%INCLUDE klerxmlf
+ROUTINE  parse_varlist(xml_file: FILE)
 
 CONST 
 	list_tag = 3
 	struct_tag = 4
-
-TYPE
-	struct_t = STRUCTURE
-	int_val: INTEGER
-	float_val: REAL
-	string_val: STRING[32] --max is 254
-	ENDSTRUCTURE
 
 
 VAR
@@ -25,8 +15,6 @@ VAR
 	func_code: INTEGER -- tag type of last scan
 
 	status: INTEGER -- function return status storage
-
-	xml_file: FILE
 
 	start_list: BOOLEAN
 	end_list: BOOLEAN
@@ -40,7 +28,7 @@ WRITE('BEGIN', CR)
 SET_FILE_ATR (xml_file, ATR_XML)
 CLR_IO_STAT(xml_file)
 
-OPEN FILE xml_file ('RO', 'MC:nested_list.xml') -- read only
+-- OPEN FILE xml_file ('RO', 'MC:nested_list.xml') -- read only
 status = IO_STATUS(xml_file)
 
 -- register tag to be detected by scan
@@ -101,4 +89,4 @@ FOR i = 1 TO (next_index -1) DO
 ENDFOR
 
 WRITE('END', CR)
-END test_varlist
+END parse_varlist

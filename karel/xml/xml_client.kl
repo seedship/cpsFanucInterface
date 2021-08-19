@@ -1,5 +1,14 @@
 PROGRAM xml_client
 
+	%INCLUDE klerxmlf
+
+TYPE
+	struct_t = STRUCTURE
+	int_val: INTEGER
+	float_val: REAL
+	string_val: STRING[32]
+	ENDSTRUCTURE
+
 VAR
 	connFile: FILE
 	pipeFile: FILE
@@ -8,11 +17,14 @@ VAR
 	nBytes: INTEGER
 
 %INCLUDE ../console/print_utils
+--%INCLUDE ../types
 %INCLUDE ../socket/socket_utils
 
+%INCLUDE test_parser_varlist
+
 BEGIN
+
 	connectServ('C3:') --tag configured by init script
-	--STATUS  = requestData('PIP:read.dt')
 	
 	-- connFile is now initialized & opened
 
@@ -24,8 +36,9 @@ BEGIN
 		DELAY 100 --check every 100ms for socket msg
 	UNTIL nBytes > 0
 
-	READ connFile(serverMsg::nBytes)
-	WRITE ('got skt msg: ', serverMsg, CR)
+	--READ connFile(serverMsg::nBytes)
+	--WRITE ('got skt msg: ', serverMsg, CR)
+	parse_varlist(connFile)
 
 
 END xml_client
