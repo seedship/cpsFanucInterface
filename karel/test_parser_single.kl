@@ -16,7 +16,6 @@ TYPE
 	string_val: STRING[32] --max is 254
 	ENDSTRUCTURE
 
-
 VAR
 	strct: struct_t
 	tag_id: INTEGER -- used to switch over scan result, bound to specific string ID
