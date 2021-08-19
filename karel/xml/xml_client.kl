@@ -1,0 +1,31 @@
+PROGRAM xml_client
+
+
+%INCLUDE socket_utils
+
+VAR
+	connFile: FILE
+	pipeFile: FILE
+	STATUS: INTEGER
+	serverMsg: STRING[254]
+	nBytes: INTEGER
+
+BEGIN
+	connectServ('C3:') --tag configured by init script
+	--STATUS  = requestData('PIP:read.dt')
+	
+	-- connFile is now initialized & opened
+
+	REPEAT
+		BYTES_AHEAD(connFile, nBytes, STATUS)           
+		IF STATUS <> 0 THEN
+			RETURN (-1)
+		ENDIF
+		DELAY 100 --check every 100ms for socket msg
+	UNTIL nBytes > 0
+
+	READ connFile(serverMsg::nBytes)
+	WRITE ('got skt msg: ', serverMsg, CR)
+
+
+END xml_client

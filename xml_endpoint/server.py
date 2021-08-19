@@ -12,6 +12,6 @@ s.listen(1)
 conn, addr = s.accept()
 print ('Connected by', addr)
 
-conn.sendall('Hello, AIsmart!'.encode())
+conn.sendall('Hello, AIsmart!'.encode("ascii"))
 print ('Send message')
 conn.close()
