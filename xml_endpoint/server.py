@@ -17,10 +17,14 @@ xml_varlist_str = r'<?xml version="1.0" encoding="ASCII"?>' \
                   r'<struct_tag int_val="8" float_val="-2.5" string_val="ghi"/>' \
                   r'</list_tag>'
 
-s.listen(1)
-conn, addr = s.accept()
-print ('Connected by', addr)
+while(True):
+    s.listen(1)
+    conn, addr = s.accept()
+    print ('Connected by', addr)
 
-conn.sendall(xml_varlist_str.encode("ascii"))
-print ('Send message')
-# conn.close()
+    # block until incoming client msg
+    msg = conn.recv(1024)
+    print(msg)
+
+    conn.sendall(xml_varlist_str.encode("ascii"))
+    print ('Send message')

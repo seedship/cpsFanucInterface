@@ -27,6 +27,8 @@ BEGIN
 	connectServ('C3:') --tag configured by init script
 	-- connFile is now initialized & opened
 
+	WRITE connFile('Karel says hello', CR, CR)
+
 REPEAT
 		BYTES_AHEAD(connFile, nBytes, STATUS)           
 		IF STATUS <> 0 THEN
