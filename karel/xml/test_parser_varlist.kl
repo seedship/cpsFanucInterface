@@ -1,6 +1,6 @@
 -- %COMMENT = 'Parse list of struct tags'
 
-ROUTINE  parse_varlist(xml_file: FILE)
+ROUTINE  parse_varlist(xml_file: FILE; buffer_struct: struct_t)
 
 CONST 
 	list_tag = 3
@@ -9,7 +9,6 @@ CONST
 
 VAR
 	structs: ARRAY [32] OF struct_t
-	buffer_struct: struct_t
 	tag_id: INTEGER -- id of last scanned tag
 	tag_string: STRING[32] -- last scanned tagname
 	func_code: INTEGER -- tag type of last scan
@@ -28,6 +27,7 @@ WRITE('BEGIN', CR)
 SET_FILE_ATR (xml_file, ATR_XML)
 CLR_IO_STAT(xml_file)
 
+OPEN FILE xml_file('RO', 'PIP:read.dt')
 -- OPEN FILE xml_file ('RO', 'MC:nested_list.xml') -- read only
 status = IO_STATUS(xml_file)
 
@@ -71,7 +71,8 @@ WHILE ((end_list = FALSE) AND (next_index <= 32)) DO
 				end_list = TRUE
 			CASE(struct_tag):
 				WRITE('adding struct: ', next_index, CR)
-				XML_SETVAR(xml_file, 'test_varlist', 'buffer_struct', status)
+				-- XML_SETVAR(FILE, 'PROGRAM_NAME', 'VAR_NAME', status) 
+				XML_SETVAR(xml_file, 'xml_client', 'buffer_struct', status) 
 				structs[next_index] = buffer_struct
 				next_index = next_index + 1
 		ENDSELECT

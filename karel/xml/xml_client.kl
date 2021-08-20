@@ -15,30 +15,49 @@ VAR
 	STATUS: INTEGER
 	serverMsg: STRING[254]
 	nBytes: INTEGER
+	buffer_struct: struct_t -- needs to be global program variable for xml_scan!
 
 %INCLUDE ../console/print_utils
---%INCLUDE ../types
 %INCLUDE ../socket/socket_utils
-
 %INCLUDE test_parser_varlist
 
 BEGIN
 
+
 	connectServ('C3:') --tag configured by init script
-	
 	-- connFile is now initialized & opened
 
-	REPEAT
+REPEAT
 		BYTES_AHEAD(connFile, nBytes, STATUS)           
 		IF STATUS <> 0 THEN
 			ABORT
 		ENDIF
 		DELAY 100 --check every 100ms for socket msg
-	UNTIL nBytes > 0
+UNTIL nBytes > 0
+
+OPEN FILE pipeFile('RW', 'PIP:read.dt')
+STATUS = IO_STATUS(pipeFile)
+
+WHILE nBytes > 0 DO
+	READ connFile(serverMsg::nBytes)
+	STATUS = IO_STATUS(connFile)
+
+	checkError('I/O_Status (File)', STATUS)
+
+	WRITE pipeFile(serverMsg)
+	
+	BYTES_AHEAD(connFile, nBytes, STATUS)           
+	IF STATUS <> 0 THEN
+		CLOSE FILE pipeFile
+		ABORT
+	ENDIF
+	
+ENDWHILE
 
 	--READ connFile(serverMsg::nBytes)
 	--WRITE ('got skt msg: ', serverMsg, CR)
-	parse_varlist(connFile)
+	CLOSE FILE pipeFile
+	parse_varlist(pipeFile, buffer_struct)
 
 
 END xml_client
