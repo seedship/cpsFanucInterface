@@ -27,7 +27,7 @@ WRITE('BEGIN', CR)
 SET_FILE_ATR (xml_file, ATR_XML)
 CLR_IO_STAT(xml_file)
 
-OPEN FILE xml_file('RO', 'PIP:read.dt')
+OPEN FILE xml_file('RO', 'PIP:read.dt') -- reopen as read only after setting xml attr
 -- OPEN FILE xml_file ('RO', 'MC:nested_list.xml') -- read only
 status = IO_STATUS(xml_file)
 

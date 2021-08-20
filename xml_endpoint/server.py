@@ -24,7 +24,7 @@ while(True):
 
     # block until incoming client msg
     msg = conn.recv(1024)
-    print(msg)
+    print(msg.decode("ascii"))
 
     conn.sendall(xml_varlist_str.encode("ascii"))
     print ('Send message')
