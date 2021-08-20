@@ -12,6 +12,7 @@ TYPE
 VAR
 	connFile: FILE
 	pipeFile: FILE
+	log: FILE
 	STATUS: INTEGER
 	serverMsg: STRING[254]
 	nBytes: INTEGER
@@ -23,9 +24,9 @@ VAR
 
 BEGIN
 
-
-	connectServ('C3:') --tag configured by init script
-	-- connFile is now initialized & opened
+OPEN FILE log('RW', 'MC:log.txt')
+connectServ('C3:') --tag configured by init script
+-- connFile is now initialized & opened
 
 	WRITE connFile('Karel says hello', CR, CR)
 
@@ -59,7 +60,7 @@ ENDWHILE
 	--READ connFile(serverMsg::nBytes)
 	--WRITE ('got skt msg: ', serverMsg, CR)
 	CLOSE FILE pipeFile
-	parse_varlist(pipeFile, buffer_struct)
+	parse_varlist(pipeFile)
 
 
 END xml_client

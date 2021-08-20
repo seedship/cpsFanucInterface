@@ -1,6 +1,6 @@
 -- %COMMENT = 'Parse list of struct tags'
 
-ROUTINE  parse_varlist(xml_file: FILE; buffer_struct: struct_t)
+ROUTINE  parse_varlist(xml_file: FILE)
 
 CONST 
 	list_tag = 3
@@ -22,7 +22,7 @@ VAR
 	i: INTEGER
 
 BEGIN
-WRITE('BEGIN', CR)
+WRITE log('PARSER BEGIN', CR)
 	
 SET_FILE_ATR (xml_file, ATR_XML)
 CLR_IO_STAT(xml_file)
@@ -43,16 +43,16 @@ next_index = 1
 WHILE (start_list = FALSE) DO
 	XML_SCAN(xml_file, tag_string, tag_id, func_code, status)
 	IF ( status = 0) THEN
-		WRITE('EOF', CR)
+		WRITE log( 'EOF', CR)
 		start_list = TRUE
 	ENDIF
 	IF (status = XML_FUNCTION) THEN
 		IF (tag_id = list_tag) THEN
-		WRITE('found list start', CR)
+		WRITE log('found list start', CR)
 		start_list = TRUE
 		ENDIF
 	ELSE
-	WRITE('ERR', status, CR)
+	WRITE log('ERR', status, CR)
 	ABORT
 	ENDIF
 ENDWHILE
@@ -61,33 +61,33 @@ ENDWHILE
 WHILE ((end_list = FALSE) AND (next_index <= 32)) DO
 	XML_SCAN(xml_file, tag_string, tag_id, func_code, status)
 	IF ( status = 0) THEN
-		WRITE('EOF', CR)
+		WRITE log( 'EOF', CR)
 		end_list = TRUE
 	ENDIF
 	IF (status = XML_FUNCTION) THEN
 		SELECT tag_id OF
 			CASE(list_tag):
-				WRITE('found list end', CR)
+				WRITE log('found list end', CR)
 				end_list = TRUE
 			CASE(struct_tag):
-				WRITE('adding struct: ', next_index, CR)
+				WRITE log('adding struct: ', next_index, CR)
 				-- XML_SETVAR(FILE, 'PROGRAM_NAME', 'VAR_NAME', status) 
 				XML_SETVAR(xml_file, 'xml_client', 'buffer_struct', status) 
 				structs[next_index] = buffer_struct
 				next_index = next_index + 1
 		ENDSELECT
 	ELSE
-	WRITE('ERR', status, CR)
+	WRITE log('ERR', status, CR)
 	ABORT
 	ENDIF
 ENDWHILE
 
 FOR i = 1 TO (next_index -1) DO
-		WRITE('Struct ', i, CR)
-		WRITE('	int_val:', structs[i].int_val, '  ')
-		WRITE('	float_val:', structs[i].float_val, '  ')
-		WRITE('	string_val:', structs[i].string_val, CR)
+		WRITE log('Struct ', i, CR)
+		WRITE log('	int_val:', structs[i].int_val, '  ')
+		WRITE log('	float_val:', structs[i].float_val, '  ')
+		WRITE log('	string_val:', structs[i].string_val, CR)
 ENDFOR
 
-WRITE('END', CR)
+WRITE log('PARSER END', CR)
 END parse_varlist
