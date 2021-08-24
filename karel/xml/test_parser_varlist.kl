@@ -3,12 +3,12 @@
 ROUTINE  parse_varlist(xml_file: FILE)
 
 CONST 
-	list_tag = 3
+	list_tag = 3 -- previous are reserved for system
 	struct_tag = 4
 
 
 VAR
-	structs: ARRAY [32] OF struct_t
+	structs: ARRAY [16] OF struct_t
 	tag_id: INTEGER -- id of last scanned tag
 	tag_string: STRING[32] -- last scanned tagname
 	func_code: INTEGER -- tag type of last scan
@@ -58,7 +58,7 @@ WHILE (start_list = FALSE) DO
 ENDWHILE
 
 -- scan list elements until end tag is found
-WHILE ((end_list = FALSE) AND (next_index <= 32)) DO
+WHILE ((end_list = FALSE) AND (next_index <= 16)) DO
 	XML_SCAN(xml_file, tag_string, tag_id, func_code, status)
 	IF ( status = 0) THEN
 		WRITE log( 'EOF', CR)

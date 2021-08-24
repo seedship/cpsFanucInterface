@@ -42,6 +42,7 @@ OPEN FILE pipeFile('RW', 'PIP:read.dt')
 STATUS = IO_STATUS(pipeFile)
 
 WHILE nBytes > 0 DO
+	WRITE log ('SOCK -> PIPE WRITE', CR)
 	READ connFile(serverMsg::nBytes)
 	STATUS = IO_STATUS(connFile)
 
