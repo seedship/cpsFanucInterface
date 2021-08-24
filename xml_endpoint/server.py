@@ -15,6 +15,20 @@ xml_varlist_str = r'<?xml version="1.0" encoding="ASCII"?>' \
                   r'<struct_tag int_val="10" float_val="-2.7" string_val="abc"/>' \
                   r'<struct_tag int_val="9" float_val="-1.6" string_val="def"/>' \
                   r'<struct_tag int_val="8" float_val="0.5" string_val="ghi"/>' \
+                  r'<struct_tag int_val="10" float_val="-2.7" string_val="abc"/>' \
+                  r'<struct_tag int_val="9" float_val="-1.6" string_val="def"/>' \
+                  r'<struct_tag int_val="8" float_val="0.5" string_val="ghi"/>'\
+                  r'<struct_tag int_val="10" float_val="-2.7" string_val="abc"/>' \
+                  r'<struct_tag int_val="9" float_val="-1.6" string_val="def"/>' \
+                  r'<struct_tag int_val="8" float_val="0.5" string_val="ghi"/>' \
+                  r'<struct_tag int_val="10" float_val="-2.7" string_val="abc"/>' \
+                  r'<struct_tag int_val="9" float_val="-1.6" string_val="def"/>' \
+                  r'<struct_tag int_val="8" float_val="0.5" string_val="ghi"/>' \
+                  r'<struct_tag int_val="10" float_val="-2.7" string_val="abc"/>' \
+                  r'<struct_tag int_val="9" float_val="-1.6" string_val="def"/>' \
+                  r'<struct_tag int_val="8" float_val="0.5" string_val="ghi"/>' \
+                  r'<struct_tag int_val="10" float_val="-2.7" string_val="abc"/>' \
+                  r'<struct_tag int_val="10" float_val="-2.7" string_val="abc"/>' \
                   r'</list_tag>'
 
 while(True):
