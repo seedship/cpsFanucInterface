@@ -1,0 +1,84 @@
+ROUTINE  parse_varlist(xml_file: FILE, array: ARRAY[*] OF struct_t, max: INTEGER) : INTEGER
+
+CONST
+	-- preceding tag IDs are reserved for system
+	list_tag = 3
+	struct_tag = 4
+
+VAR
+	bufferStruct: struct_t -- buffer for xml_scan, that needs static variable name as parameter
+	tag_id: INTEGER -- id of last scanned tag
+	tag_string: STRING[32] -- last scanned tagname
+	func_code: INTEGER -- tag type of last scan
+
+	list_start: BOOLEAN
+	list_end: BOOLEAN
+
+	next_index: INTEGER
+
+BEGIN
+log('Parser BEGIN')
+SET_FILE_ATR (xml_file, ATR_XML)
+CLR_IO_STAT(xml_file)
+
+OPEN FILE xml_file('RO', 'PIP:read.dt') -- reopen as read only after setting xml attr
+STATUS = IO_STATUS(xml_file)
+catchError('Could not open xml_file', STATUS)
+
+-- register tags to be detected by scan
+-- XML_ADDTAG(FILE, 'TAG_NAME', TAG_LEN, CASE_SENSITIVE, TAG_ID, STATUS) 
+XML_ADDTAG(xml_file, 'list_tag', 16, FALSE, list_tag, STATUS)
+XML_ADDTAG(xml_file, 'struct_tag', 16, FALSE,struct_tag, STATUS)
+catchError('Register tags', STATUS)
+
+-- initialize vars
+list_start = FALSE
+list_end = FALSE
+next_index = 1
+
+-- scan until list start tag is found
+WHILE (list_start = FALSE) DO
+	XML_SCAN(xml_file, tag_string, tag_id, func_code, STATUS)
+	IF ( STATUS = 0) THEN
+		log('Parser reached EOF')
+		RETURN 0
+	ENDIF
+	IF (STATUS = XML_FUNCTION) THEN -- scanned a tag
+		IF (tag_id = list_tag) THEN
+		log('Found list start')
+		list_start = TRUE
+		ELSE
+		log('Found some tag')
+		ENDIF
+	ELSE
+	catchError('Failed finding list start', STATUS)
+	ENDIF
+ENDWHILE
+
+-- scan & add list elements until end tag is found
+WHILE ((list_end = FALSE) AND (next_index <= 16)) DO
+	XML_SCAN(xml_file, tag_string, tag_id, func_code, STATUS)
+	IF ( STATUS = 0) THEN
+		log('Parser reached EOF')
+		RETURN 0
+	ENDIF
+	IF (STATUS = XML_FUNCTION) THEN -- scanned a tag
+		SELECT tag_id OF
+			CASE(list_tag):
+				log('Found list end')
+			CASE(struct_tag):
+				next_index = next_index +1
+				log('Adding struct: '+next_index)
+				-- XML_SETVAR(FILE, 'PROGRAM_NAME', 'VAR_NAME', STATUS) 
+				XML_SETVAR(xml_file, PROGRAM_NAME, 'bufferStruct', STATUS)
+				structs[next_index] = bufferStruct
+				next_index = next_index + 1
+		ENDSELECT
+	ELSE
+	catchError('Failed parsing list', STATUS)
+	ENDIF
+ENDWHILE
+
+log('Parser END')
+RETURN (next_index-1)
+END parse_varlist

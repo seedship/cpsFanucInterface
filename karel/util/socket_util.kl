@@ -1,0 +1,24 @@
+ROUTINE connectToServer(serverTag : STRING, socketFile: FILE)
+BEGIN
+	MSG_DISCO(serverTag, STATUS)
+    catchError('Connecting to Server', STATUS)
+
+	MSG_CONNECT(serverTag, STATUS)
+	catchError('Connecting to Server', STATUS)
+
+	OPEN FILE socketFile('RW', serverTag)
+	STATUS = IO_STATUS(socketFile)
+	catchError('Could not open socket file', STATUS)
+END connectServ
+
+ROUTINE awaitSocket(socketFile: FILE, delay: INTEGER)
+VAR
+nBytes: INTEGER
+
+BEGIN
+REPEAT
+	BYTES_AHEAD(socketFile, nBytes, STATUS)      
+	catchError('Failed to scan socket', STATUS)
+	DELAY delay -- wait for <delay> ms
+UNTIL nBytes > 0
+END awaitSocket

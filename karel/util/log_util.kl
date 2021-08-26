@@ -1,16 +1,29 @@
 -- log error to file but continue execution
--- REQUIRES declaration of 'log' variable
-ROUTINE logError(description : STRING; status : INTEGER)
+-- REQUIRES variable 'LOG' to be declared & initialized
+ROUTINE logError(description : STRING; STATUS : INTEGER)
 BEGIN
-    IF status <> 0 THEN
-        WRITE log ('ERROR: ',  description, ' ; STATUS:', status, CR)
+    IF STATUS <> 0 THEN
+        WRITE LOG ('ERROR: ',  description, ' ; STATUS: ', STATUS, CR)
     ENDIF
-END logError
+END LOGError
 
 -- terminate programm after logging error
-ROUTINE catchError(description : STRING; status : INTEGER)
+ROUTINE catchError(description : STRING; STATUS : INTEGER)
 BEGIN
-    logError(description, status)
+    logError(description, STATUS)
     ABORT
 END catchError
 
+-- REQUIRES variable 'LOG' to be declared
+ROUTINE initLOG(path: STRING)
+OPEN FILE LOG ('RW', path)
+IF IO_STATUS(LOG) <> 0 THEN
+    WRITE('ERROR: Could not open LOG file ; STATUS: ', IO_STATUS(LOG), CR) --write to console
+	ABORT
+ENDIF
+END initLOG
+
+-- shorthand to write arbitrary text to logfile
+ROUTINE log(text: STRING)
+WRITE LOG(text, CR)
+END log

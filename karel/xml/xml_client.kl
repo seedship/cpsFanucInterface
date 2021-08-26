@@ -3,65 +3,64 @@ PROGRAM xml_client
 	%INCLUDE klerxmlf
 
 TYPE
+	-- define struct that will be parsed from xml
 	struct_t = STRUCTURE
 	int_val: INTEGER
 	float_val: REAL
 	string_val: STRING[32]
 	ENDSTRUCTURE
 
-VAR
-	connFile: FILE
-	pipeFile: FILE
-	log: FILE
-	STATUS: INTEGER
-	serverMsg: STRING[254]
-	nBytes: INTEGER
-	buffer_struct: struct_t -- needs to be global program variable for xml_scan!
+CONST
+	-- mandatory global declarations
+	PROGRAM_NAME = 'xml_client'
 
-%INCLUDE ../console/print_utils
-%INCLUDE ../socket/socket_utils
-%INCLUDE test_parser_varlist
+VAR
+	-- mandatory global declarations
+	LOG: FILE
+	STATUS: INTEGER
+
+	socketFile: FILE
+	pipeFile: FILE
+	structs: ARRAY [16] OF struct_t
+	i: INTEGER
+	n: INTEGER
+
+%INCLUDE varlist_parser
+
+%INCLUDE ../util/log_util
+%INCLUDE ../util/socket_util
+%INCLUDE ../util/file_util
 
 BEGIN
+log('Client BEGIN')
+initLOG('MC:log.txt')
 
-OPEN FILE log('RW', 'MC:log.txt')
-connectServ('C3:') --tag configured by init script
--- connFile is now initialized & opened
+connectToServer('C3:', socketFile)
+-- socketFile is now initialized & opened
+log('Connection established')
 
-	WRITE connFile('Karel says hello', CR, CR)
+WRITE socketFile('Karel says hello', CR, CR)
 
-REPEAT
-		BYTES_AHEAD(connFile, nBytes, STATUS)           
-		IF STATUS <> 0 THEN
-			ABORT
-		ENDIF
-		DELAY 100 --check every 100ms for socket msg
-UNTIL nBytes > 0
-
-OPEN FILE pipeFile('RW', 'PIP:read.dt')
+OPEN FILE pipeFile('RW', 'PIP:pipe.dt')
 STATUS = IO_STATUS(pipeFile)
+catchError('Could not open pipe file', STATUS)
 
-WHILE nBytes > 0 DO
-	WRITE log ('SOCK -> PIPE WRITE', CR)
-	READ connFile(serverMsg::nBytes)
-	STATUS = IO_STATUS(connFile)
+awaitSocket(socketFile, 100) -- check every 100ms
+log('Received socket message')
 
-	checkError('I/O_Status (File)', STATUS)
+fileCopy(socketFile, pipeFile) -- socket -> pipe
 
-	WRITE pipeFile(serverMsg)
-	
-	BYTES_AHEAD(connFile, nBytes, STATUS)           
-	IF STATUS <> 0 THEN
-		CLOSE FILE pipeFile
-		ABORT
-	ENDIF
-	
-ENDWHILE
+CLOSE FILE pipeFile -- needs to be reopened (as RO) to be interpreted as xml
+len = parse_varlist(pipeFile)
 
-	--READ connFile(serverMsg::nBytes)
-	--WRITE ('got skt msg: ', serverMsg, CR)
-	CLOSE FILE pipeFile
-	parse_varlist(pipeFile)
+FOR i = 1 TO n DO
+	log('Struct '+i)
+	log('	int_val:'+ structs[i].int_val)
+	log('	float_val:'+ structs[i].float_val)
+	log('	string_val:'+ structs[i].string_val)
+ENDFOR
 
 
+CLOSE FILE socketFile
+log('Client END')
 END xml_client
