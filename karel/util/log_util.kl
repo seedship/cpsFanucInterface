@@ -5,13 +5,12 @@ BEGIN
     IF status <> 0 THEN
         WRITE log ('ERROR: ',  description, ' ; STATUS:', status, CR)
     ENDIF
-END checkError
+END logError
 
 -- terminate programm after logging error
--- REQUIRES declaration of 'log' variable
 ROUTINE catchError(description : STRING; status : INTEGER)
 BEGIN
     logError(description, status)
     ABORT
-END checkError
+END catchError
 
