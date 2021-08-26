@@ -51,7 +51,7 @@ log('Received socket message')
 fileCopy(socketFile, pipeFile) -- socket -> pipe
 
 CLOSE FILE pipeFile -- needs to be reopened (as RO) to be interpreted as xml
-len = parse_varlist(pipeFile)
+n = parse_varlist(pipeFile)
 
 FOR i = 1 TO n DO
 	log('Struct '+i)
