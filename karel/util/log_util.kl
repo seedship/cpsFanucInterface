@@ -1,0 +1,17 @@
+-- log error to file but continue execution
+-- REQUIRES declaration of 'log' variable
+ROUTINE logError(description : STRING; status : INTEGER)
+BEGIN
+    IF status <> 0 THEN
+        WRITE log ('ERROR: ',  description, ' ; STATUS:', status, CR)
+    ENDIF
+END checkError
+
+-- terminate programm after logging error
+-- REQUIRES declaration of 'log' variable
+ROUTINE catchError(description : STRING; status : INTEGER)
+BEGIN
+    logError(description, status)
+    ABORT
+END checkError
+
