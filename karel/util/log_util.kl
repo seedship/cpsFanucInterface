@@ -3,20 +3,23 @@
 ROUTINE logError(description : STRING; STATUS : INTEGER)
 BEGIN
     IF STATUS <> 0 THEN
-        WRITE LOG ('ERROR: ',  description, ' ; STATUS: ', STATUS, CR)
+        WRITE LOG ('ERROR: ',  description, '; STATUS: ', STATUS, CR)
     ENDIF
-END LOGError
+END logError
 
 -- terminate programm after logging error
 ROUTINE catchError(description : STRING; STATUS : INTEGER)
 BEGIN
-    logError(description, STATUS)
-    ABORT
+    IF STATUS <> 0 THEN
+        WRITE LOG ('ERROR: ',  description, '; STATUS: ', STATUS, CR)
+        ABORT --terminate
+    ENDIF
 END catchError
 
 -- REQUIRES variable 'LOG' to be declared
-ROUTINE initLOG(path: STRING)
-OPEN FILE LOG ('RW', path)
+ROUTINE initLOG(filePath: STRING)
+BEGIN
+OPEN FILE LOG ('RW', filePath)
 IF IO_STATUS(LOG) <> 0 THEN
     WRITE('ERROR: Could not open LOG file ; STATUS: ', IO_STATUS(LOG), CR) --write to console
 	ABORT
@@ -24,6 +27,7 @@ ENDIF
 END initLOG
 
 -- shorthand to write arbitrary text to logfile
-ROUTINE log(text: STRING)
+ROUTINE logText(text: STRING)
+BEGIN
 WRITE LOG(text, CR)
-END log
+END logText

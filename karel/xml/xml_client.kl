@@ -13,8 +13,11 @@ TYPE
 CONST
 	-- mandatory global declarations
 	PROGRAM_NAME = 'xml_client'
+	pipe_path = 'PIP:pipe.dt'
+	BUFFER_NAME = 'bufferStruct' -- global ID of var below
 
 VAR
+	bufferStruct: struct_t -- buffer for xml_scan, that needs static variable name as parameter
 	-- mandatory global declarations
 	LOG: FILE
 	STATUS: INTEGER
@@ -25,42 +28,48 @@ VAR
 	i: INTEGER
 	n: INTEGER
 
-%INCLUDE varlist_parser
+
 
 %INCLUDE ../util/log_util
 %INCLUDE ../util/socket_util
 %INCLUDE ../util/file_util
+--%INCLUDE ../console/print_utils
+--%INCLUDE ../socket/socket_utils
+
+
+%INCLUDE varlist_parser
 
 BEGIN
-log('Client BEGIN')
 initLOG('MC:log.txt')
+logText('Client BEGIN')
 
 connectToServer('C3:', socketFile)
+--connectServ('C3:')
 -- socketFile is now initialized & opened
-log('Connection established')
+logText('Connection established')
 
 WRITE socketFile('Karel says hello', CR, CR)
 
-OPEN FILE pipeFile('RW', 'PIP:pipe.dt')
+OPEN FILE pipeFile('RW', pipe_path)
 STATUS = IO_STATUS(pipeFile)
 catchError('Could not open pipe file', STATUS)
 
 awaitSocket(socketFile, 100) -- check every 100ms
-log('Received socket message')
+logText('Received socket message')
 
 fileCopy(socketFile, pipeFile) -- socket -> pipe
 
 CLOSE FILE pipeFile -- needs to be reopened (as RO) to be interpreted as xml
-n = parse_varlist(pipeFile)
+n = parse_varlist(pipeFile, pipe_path, bufferStruct, structs, 16)
 
 FOR i = 1 TO n DO
-	log('Struct '+i)
-	log('	int_val:'+ structs[i].int_val)
-	log('	float_val:'+ structs[i].float_val)
-	log('	string_val:'+ structs[i].string_val)
+	WRITE log('Struct ', i, CR)
+	WRITE log('	int_val:', structs[i].int_val, CR)
+	WRITE log('	float_val:', structs[i].float_val, CR)
+	WRITE log('	string_val:', structs[i].string_val, CR)
 ENDFOR
 
 
 CLOSE FILE socketFile
-log('Client END')
+logText('Client END')
 END xml_client

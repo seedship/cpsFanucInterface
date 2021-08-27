@@ -1,4 +1,4 @@
-ROUTINE fileCopy(source: FILE, destination: FILE)
+ROUTINE fileCopy(source: FILE; destination: FILE)
 VAR
 stringBuffer: STRING[254] -- maximum string length that can be stored in a variable
 nBytes: INTEGER
@@ -10,11 +10,11 @@ WHILE nBytes > 0 DO
 	READ source (stringBuffer::nBytes) -- read min(nBytes, 254) characters from source file
 
 	STATUS = IO_STATUS(source)
-	catchError('Failed to read from source' + source, STATUS)
+	catchError('Failed to read from source', STATUS)
 
 	WRITE destination(stringBuffer)
 	
 	BYTES_AHEAD(source, nBytes, STATUS) -- update minBytes
-	catchError('Failed to scan source' + source, STATUS)
+	catchError('Failed to scan source', STATUS)
 ENDWHILE
 END fileCopy

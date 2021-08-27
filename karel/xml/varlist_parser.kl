@@ -1,4 +1,4 @@
-ROUTINE  parse_varlist(xml_file: FILE, array: ARRAY[*] OF struct_t, max: INTEGER) : INTEGER
+ROUTINE  parse_varlist(xml_file: FILE; xmlPath: STRING; bufferStruct: struct_t; structArray: ARRAY[*] OF struct_t;  max: INTEGER) : INTEGER
 
 CONST
 	-- preceding tag IDs are reserved for system
@@ -6,7 +6,6 @@ CONST
 	struct_tag = 4
 
 VAR
-	bufferStruct: struct_t -- buffer for xml_scan, that needs static variable name as parameter
 	tag_id: INTEGER -- id of last scanned tag
 	tag_string: STRING[32] -- last scanned tagname
 	func_code: INTEGER -- tag type of last scan
@@ -17,11 +16,11 @@ VAR
 	next_index: INTEGER
 
 BEGIN
-log('Parser BEGIN')
+logText('Parser BEGIN')
 SET_FILE_ATR (xml_file, ATR_XML)
 CLR_IO_STAT(xml_file)
 
-OPEN FILE xml_file('RO', 'PIP:read.dt') -- reopen as read only after setting xml attr
+OPEN FILE xml_file('RO', xmlPath) -- reopen as read only after setting xml attr
 STATUS = IO_STATUS(xml_file)
 catchError('Could not open xml_file', STATUS)
 
@@ -40,15 +39,15 @@ next_index = 1
 WHILE (list_start = FALSE) DO
 	XML_SCAN(xml_file, tag_string, tag_id, func_code, STATUS)
 	IF ( STATUS = 0) THEN
-		log('Parser reached EOF')
-		RETURN 0
+		logText('Parser reached EOF')
+		RETURN (0)
 	ENDIF
 	IF (STATUS = XML_FUNCTION) THEN -- scanned a tag
 		IF (tag_id = list_tag) THEN
-		log('Found list start')
+		logText('Found list start')
 		list_start = TRUE
 		ELSE
-		log('Found some tag')
+		logText('Found some tag')
 		ENDIF
 	ELSE
 	catchError('Failed finding list start', STATUS)
@@ -59,19 +58,18 @@ ENDWHILE
 WHILE ((list_end = FALSE) AND (next_index <= 16)) DO
 	XML_SCAN(xml_file, tag_string, tag_id, func_code, STATUS)
 	IF ( STATUS = 0) THEN
-		log('Parser reached EOF')
-		RETURN 0
+		logText('Parser reached EOF')
+		RETURN (0)
 	ENDIF
 	IF (STATUS = XML_FUNCTION) THEN -- scanned a tag
 		SELECT tag_id OF
 			CASE(list_tag):
-				log('Found list end')
+				logText('Found list end')
 			CASE(struct_tag):
-				next_index = next_index +1
-				log('Adding struct: '+next_index)
+				WRITE log('Adding struct: ', next_index, CR)
 				-- XML_SETVAR(FILE, 'PROGRAM_NAME', 'VAR_NAME', STATUS) 
-				XML_SETVAR(xml_file, PROGRAM_NAME, 'bufferStruct', STATUS)
-				structs[next_index] = bufferStruct
+				XML_SETVAR(xml_file, PROGRAM_NAME, BUFFER_NAME, STATUS)
+				structArray[next_index] = bufferStruct
 				next_index = next_index + 1
 		ENDSELECT
 	ELSE
@@ -79,6 +77,6 @@ WHILE ((list_end = FALSE) AND (next_index <= 16)) DO
 	ENDIF
 ENDWHILE
 
-log('Parser END')
+logText('Parser END')
 RETURN (next_index-1)
 END parse_varlist
