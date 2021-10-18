@@ -32,13 +32,6 @@ xml_varlist_str = r'<?xml version="1.0" encoding="ASCII"?>' \
                   r'</list_tag>'
 
 from xml.etree.ElementTree import Element, SubElement, tostring
-root = Element('list_tag')
-for i in range(15):
-     x = SubElement(root, 'struct_tag', {'int_val': str(i), 'float_val': str(-3.5+i), 'string_val': "abc" if i%2==0 else "def"})
-
-print(tostring(root))
-
-rootStr = tostring(root)
 
 while(True):
     print ('Listening')
@@ -49,6 +42,11 @@ while(True):
         # block until incoming client msg
         msg = conn.recv(1024)
         print(msg.decode("ascii"))
+        root = Element('list_tag')
+        for i in range(15):
+            x = SubElement(root, 'struct_tag', {'int_val': str(i), 'float_val': str(-3.5 + i),
+                                                'string_val': "abc" if i % 2 == 0 else "def"})
 
+        rootStr = tostring(root)
         conn.sendall(str(rootStr).encode("ascii"))
         print ('Send message')
