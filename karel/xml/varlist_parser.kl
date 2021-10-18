@@ -77,6 +77,7 @@ WHILE ((list_end = FALSE) AND (next_index <= 16)) DO
 	ENDIF
 ENDWHILE
 
+CLOSE FILE  xml_file
 logText('Parser END')
 RETURN (next_index-1)
 END parse_varlist
