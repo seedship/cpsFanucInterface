@@ -62,6 +62,10 @@ ROUTINE set_reg_ : INTEGER FROM appmove
 
 BEGIN
 	
+	ABORT_TASK('motion', TRUE, TRUE, STATUS)
+	RUN_TASK( 'motion', 1, FALSE, FALSE, 1 OR 2 OR 4, STATUS )
+	DELAY(100)
+	
 	cur_pos = CURPOS(0,0);
 	cur_jpos = CURJPOS(0,0);
 
@@ -72,6 +76,7 @@ BEGIN
 	ENDIF
 
 	opt = check_param_
+	
 	SELECT opt OF
 			
 		CASE (JJR_MOTION):
