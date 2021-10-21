@@ -5,16 +5,23 @@ nBytes: INTEGER
 
 BEGIN
 BYTES_AHEAD(source, nBytes, STATUS) -- initialize nBytes
+catchError('Failed to scan for first bytes in source', STATUS)
 
 WHILE nBytes > 0 DO
 	READ source (stringBuffer::nBytes) -- read min(nBytes, 254) characters from source file
 
 	STATUS = IO_STATUS(source)
 	catchError('Failed to read from source', STATUS)
+	
+	WRITE log(stringBuffer, CR)
 
 	WRITE destination(stringBuffer)
 	
 	BYTES_AHEAD(source, nBytes, STATUS) -- update minBytes
-	catchError('Failed to scan source', STATUS)
+	-- interpret scanning error as end of file (as source could be e.g. closed socket)
+	IF STATUS <> 0 THEN
+		nBytes = 0
+	ENDIF
+	--catchError('Failed to scan for next bytes in source', STATUS)
 ENDWHILE
 END fileCopy

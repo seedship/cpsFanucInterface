@@ -40,6 +40,7 @@ WHILE (list_start = FALSE) DO
 	XML_SCAN(xml_file, tag_string, tag_id, func_code, STATUS)
 	IF ( STATUS = 0) THEN
 		logText('Parser reached EOF')
+		CLOSE FILE  xml_file
 		RETURN (0)
 	ENDIF
 	IF (STATUS = XML_FUNCTION) THEN -- scanned a tag
@@ -59,12 +60,14 @@ WHILE ((list_end = FALSE) AND (next_index <= 16)) DO
 	XML_SCAN(xml_file, tag_string, tag_id, func_code, STATUS)
 	IF ( STATUS = 0) THEN
 		logText('Parser reached EOF')
+		CLOSE FILE  xml_file
 		RETURN (0)
 	ENDIF
 	IF (STATUS = XML_FUNCTION) THEN -- scanned a tag
 		SELECT tag_id OF
 			CASE(list_tag):
 				logText('Found list end')
+				list_end = TRUE
 			CASE(struct_tag):
 				WRITE log('Adding struct: ', next_index, CR)
 				-- XML_SETVAR(FILE, 'PROGRAM_NAME', 'VAR_NAME', STATUS) 

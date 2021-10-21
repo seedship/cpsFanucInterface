@@ -48,29 +48,28 @@ BEGIN
 initLOG('MC:log.txt')
 logText('Client BEGIN')
 
-connectToServer('C3:', socketFile)
 --connectServ('C3:')
 -- socketFile is now initialized & opened
-logText('Connection established')
 
 OPEN FILE timeLog('RW', 'MC:timeLog.txt')
 
-k = 50
-FOR j=1 TO k DO
-
+k = 10
+FOR j = 1 TO k DO
 	-- write and flush
 	us1 = GET_USEC_TIM
-	WRITE socketFile('Karel says hello', CR, CR)
+	connectToServer('C3:', socketFile)
+	logText('Connection established')
+	WRITE socketFile('GET /xml_endpoint', CR, CR)
 	
 	OPEN FILE pipeFile('RW', pipe_path)
 	STATUS = IO_STATUS(pipeFile)
 	catchError('Could not open pipe file', STATUS)
 	 
-	awaitSocket(socketFile, 1) -- check every 100ms
+	awaitSocket(socketFile, 1) -- active polling
 	logText('Received socket message')
 	
 	fileCopy(socketFile, pipeFile) -- socket -> pipe
-	
+	logText('Copied msg to pipeFile')
 	
 	CLOSE FILE pipeFile -- needs to be reopened (as RO) to be interpreted as xml
 	usRTT = GET_USEC_SUB(GET_USEC_TIM, us1)
@@ -80,9 +79,9 @@ FOR j=1 TO k DO
 	usXML = GET_USEC_SUB(GET_USEC_TIM, us2)
 	WRITE timeLog('RTT:', usRTT, CR)
 	WRITE timeLog('XML Parse:', usXML, CR)
-
+	
 ENDFOR
-
+	
 FOR i = 1 TO n DO
 	WRITE log('Struct ', i, CR)
 	WRITE log('	int_val:', structs[i].int_val, CR)
@@ -91,7 +90,6 @@ FOR i = 1 TO n DO
 ENDFOR
 
 
-CLOSE FILE socketFile
 CLOSE FILE timeLog
 logText('Client END')
 END xml_client

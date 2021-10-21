@@ -38,7 +38,7 @@ while(True):
     s.listen(1)
     conn, addr = s.accept()
     print ('Connected by', addr)
-    for x in range(100):
+    for x in range(10):
         # block until incoming client msg
         msg = conn.recv(1024)
         print(msg.decode("ascii"))

@@ -1,8 +1,10 @@
 ROUTINE connectToServer(serverTag : STRING; socketFile: FILE)
 BEGIN
+	CLOSE FILE socketFile
 	MSG_DISCO(serverTag, STATUS) -- can fail if no current connection
 	MSG_CONNECT(serverTag, STATUS)
 	catchError('Connecting to Server', STATUS)
+
 
 
 	OPEN FILE socketFile('RW', serverTag)
@@ -17,7 +19,7 @@ nBytes: INTEGER
 
 BEGIN
 REPEAT
-	BYTES_AHEAD(socketFile, nBytes, STATUS)      
+	BYTES_AHEAD(socketFile, nBytes, STATUS)
 	catchError('Failed to scan socket', STATUS)
 	DELAY pollrate -- wait for x  ms
 UNTIL nBytes > 0
