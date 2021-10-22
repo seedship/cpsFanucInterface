@@ -1,14 +1,8 @@
 PROGRAM xml_client
 
+	%INCLUDE ../types
 	%INCLUDE klerxmlf
 
-TYPE
-	-- define struct that will be parsed from xml
-	struct_t = STRUCTURE
-	int_val: INTEGER
-	float_val: REAL
-	string_val: STRING[32]
-	ENDSTRUCTURE
 
 CONST
 	-- mandatory global declarations
@@ -29,15 +23,14 @@ VAR
 	i: INTEGER
 	j: INTEGER
 	n: INTEGER
-	us1: INTEGER
-	us2: INTEGER
-	usXML: INTEGER
-	usRTT: INTEGER
+	timeRTT: INTEGER
+	timeXML: INTEGER
 	k: INTEGER
 
 %INCLUDE ../util/log_util
 %INCLUDE ../util/socket_util
 %INCLUDE ../util/file_util
+%INCLUDE ../util/stopwatch_util
 --%INCLUDE ../console/print_utils
 --%INCLUDE ../socket/socket_utils
 
@@ -45,7 +38,7 @@ VAR
 %INCLUDE varlist_parser
 
 BEGIN
-initLOG('MC:log.txt')
+initLog('MC:log.txt')
 logText('Client BEGIN')
 
 --connectServ('C3:')
@@ -55,10 +48,11 @@ OPEN FILE timeLog('RW', 'MC:timeLog.txt')
 
 k = 10
 FOR j = 1 TO k DO
-	-- write and flush
-	us1 = GET_USEC_TIM
+
+	startTime(timeRTT)
 	connectToServer('C3:', socketFile)
 	logText('Connection established')
+	-- write and flush
 	WRITE socketFile('GET /xml_endpoint', CR, CR)
 	
 	OPEN FILE pipeFile('RW', pipe_path)
@@ -72,13 +66,11 @@ FOR j = 1 TO k DO
 	logText('Copied msg to pipeFile')
 	
 	CLOSE FILE pipeFile -- needs to be reopened (as RO) to be interpreted as xml
-	usRTT = GET_USEC_SUB(GET_USEC_TIM, us1)
+	WRITE timeLog('RTT:', stopTime(timeRTT), CR)
 	
-	us2 = GET_USEC_TIM
+	startTime(timeXML)
 	n = parse_varlist(pipeFile, pipe_path, bufferStruct, structs, 16)
-	usXML = GET_USEC_SUB(GET_USEC_TIM, us2)
-	WRITE timeLog('RTT:', usRTT, CR)
-	WRITE timeLog('XML Parse:', usXML, CR)
+	WRITE timeLog('XML Parse:',  stopTime(timeXML), CR)
 	
 ENDFOR
 	

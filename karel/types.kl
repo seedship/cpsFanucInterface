@@ -2,3 +2,10 @@ TYPE
 	object_position = STRUCTURE
 		coordinates: XYZWPR
 	ENDSTRUCTURE
+
+	-- define struct that will be parsed from xml
+	struct_t = STRUCTURE
+	int_val: INTEGER
+	float_val: REAL
+	string_val: STRING[32]
+	ENDSTRUCTURE

@@ -1,0 +1,14 @@
+-- saves the starting time for future use
+ROUTINE startTime(timeStore : INTEGER)
+BEGIN
+    timeStore = GET_USEC_TIM
+END startTime
+
+-- gets the elapsed delta from timeStore to now, overwrites timeStore and returns it
+ROUTINE stopTime(timeStore : INTEGER) : INTEGER
+BEGIN
+    timeStore =  GET_USEC_SUB(GET_USEC_TIM, timeStore)
+    RETURN (timeStore)
+END stopTime
+
+

@@ -17,7 +17,7 @@ BEGIN
 END catchError
 
 -- REQUIRES variable 'LOG' to be declared
-ROUTINE initLOG(filePath: STRING)
+ROUTINE initLog(filePath: STRING)
 BEGIN
 OPEN FILE LOG ('RW', filePath)
 IF IO_STATUS(LOG) <> 0 THEN
